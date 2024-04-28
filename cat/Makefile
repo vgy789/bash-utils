@@ -1,12 +1,16 @@
 CC=gcc
-CFLAGS=-Wall -Werror -Wextra
+# не забудь включить флаги
+CFLAGS=-Wall -Werror -Wextra -std=c11 -pedantic
+OUTPUT_FILE=s21_cat
 
-all: s21_cat
+all: build
 
-s21_cat: 
-	$(CC) -o s21_cat
+build: $(OUTPUT_FILE)
+
+$(OUTPUT_FILE): 
+	$(CC) -o $(OUTPUT_FILE) ../error.c s21_cat.c
 
 clean:
-	rm -rf *.o ./cat/
+	rm -rf *.o ./cat/ $(OUTPUT_FILE)
 
 rebuild: clean all
