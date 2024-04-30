@@ -4,6 +4,12 @@
 #include <getopt.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <unistd.h>
+
+#include "./error.h"
+#include "./platform.h"
+
+#define MAXLINE 4096
 
 enum flag {
   number_nonblank = 1 << 0,
@@ -27,4 +33,20 @@ static struct option longopts[] = {
     {"--show-tabs", no_argument, NULL, 'T'},  // UNIX
     {NULL, 0, NULL, 0}};
 
-#endif  // _OPTIONS_H
+uint16_t get_options(int, char**);
+void exec_options(u_int16_t);
+
+u_int16_t set_flag(u_int16_t, u_int16_t);
+u_int16_t unset_flag(u_int16_t, u_int16_t);
+
+void simple_cat(void);
+void b();
+void e();
+void v();
+void n();
+void s();
+void t();
+void E();
+void T();
+
+#endif  // _OPTIONS_PROCESSING_H
