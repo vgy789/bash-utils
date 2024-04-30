@@ -9,7 +9,7 @@ void err_sys(const char* fmt, ...) {
   va_start(vl, fmt);
   err_doit(1, errno, fmt, vl);
   va_end(vl);
-  exit(1);
+  exit(EXIT_FAILURE);
 }
 
 void err_exit(int error, const char* fmt, ...) {
@@ -18,7 +18,7 @@ void err_exit(int error, const char* fmt, ...) {
   va_start(vl, fmt);
   err_doit(1, error, fmt, vl);
   va_end(vl);
-  exit(1);
+  exit(EXIT_FAILURE);
 }
 
 void err_quit(const char* fmt, ...) {
@@ -27,7 +27,7 @@ void err_quit(const char* fmt, ...) {
   va_start(vl, fmt);
   err_doit(0, 0, fmt, vl);
   va_end(vl);
-  exit(1);
+  exit(EXIT_FAILURE);
 }
 
 void err_msg(const char* fmt, ...) {

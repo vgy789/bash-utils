@@ -2,9 +2,9 @@
 
 uint16_t get_options(int argc, char* argv[]) {
   char ch;
-  uint16_t flag = number_nonblank;
+  uint16_t flag = 0;
 
-  while ((ch = getopt_long(argc, argv, "bevnst", longopts, NULL)) != EOF) {
+  while ((ch = getopt_long(argc, argv, "bevnstET", longopts, NULL)) != -1) {
     switch (ch) {
       case 'b':
         flag |= number_nonblank;
@@ -31,17 +31,23 @@ uint16_t get_options(int argc, char* argv[]) {
         flag |= show_tabs;
         break;
       case '?':
-        err_synopsis();
         flag = 0;
-        // default:
-        //   err_synopsis();
-        //   flag = 0;
+        errcat_synopsis();
     }
   }
   return flag;
 }
 
-void exec_options(u_int16_t flags) {
+void exec_options(uint16_t flags, FILE* file) {
+  //char *line = NULL;
+  //size_t len = 0;
+  //ssize_t nread;
+//
+  //while ((nread = getline(&line, &len, stream)) != -1) {
+  //    printf("Retrieved line of length %zd:\n", nread);
+  //    fwrite(line, nread, 1, stdout);
+  //}
+  
   if ((flags & squeeze_blank) == squeeze_blank) {
     s();
   }
@@ -66,23 +72,21 @@ void exec_options(u_int16_t flags) {
     e();
     flags = set_flag(show_nonprinting, flags);
   }
-
   if ((flags & show_tabs_nonprinting) == show_tabs_nonprinting) {
     t();
     flags = set_flag(show_nonprinting, flags);
   }
-
   if ((flags & show_nonprinting) == show_nonprinting) {
     v();
   }
 }
 
-u_int16_t set_flag(u_int16_t target, u_int16_t flags) {
+uint16_t set_flag(uint16_t target, uint16_t flags) {
   flags &= target;
   return flags;
 }
 
-u_int16_t unset_flag(u_int16_t target, u_int16_t flags) {
+uint16_t unset_flag(uint16_t target, uint16_t flags) {
   flags &= ~target;
   return flags;
 }

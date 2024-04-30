@@ -12,7 +12,7 @@
 #define MAXLINE 4096
 
 enum flag {
-  number_nonblank = 1 << 0,
+  number_nonblank = 1,
   show_ends_nonprinting = 1 << 1,
   show_nonprinting = 1 << 2,
   number = 1 << 3,
@@ -29,15 +29,15 @@ static struct option longopts[] = {
     {"--number", no_argument, NULL, 'n'},
     {"--squeeze-blank", no_argument, NULL, 's'},
     {"--show-tabs-nonprinting", no_argument, NULL, 't'},
-    {"--show-ends", no_argument, NULL, 'E'},  // UNIX
-    {"--show-tabs", no_argument, NULL, 'T'},  // UNIX
+    {"--show-ends", no_argument, NULL, 'E'},  // LINUX
+    {"--show-tabs", no_argument, NULL, 'T'},  // LINUX
     {NULL, 0, NULL, 0}};
 
 uint16_t get_options(int, char**);
-void exec_options(u_int16_t);
+void exec_options(uint16_t, FILE *);
 
-u_int16_t set_flag(u_int16_t, u_int16_t);
-u_int16_t unset_flag(u_int16_t, u_int16_t);
+uint16_t set_flag(uint16_t, uint16_t);
+uint16_t unset_flag(uint16_t, uint16_t);
 
 void simple_cat(void);
 void b();

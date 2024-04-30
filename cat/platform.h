@@ -3,17 +3,17 @@
 
 #include "error.h"
 
-#if defined(__APPLE__)
-#define OS MAC
-#elif defined(linux)  // defined(__unix__) |
-#define OS LINUX
+#if defined(__APPLE__) || defined(__MACH__)
+#define MAC
+#elif defined(__linux__) || defined(linux) || defined(__linux)
+#define LINUX
 #endif
 
-#define MAC_SYNOPSIS "usage: s21_cat [-benstv] file"
+#define MAC_SYNOPSIS "usage: s21_cat [-bevnst] file"
 #define LINUX_SYNOPSIS \
-  "usage: s21_cat [-bensTv] [--number-nonblank] [--number] \
+  "usage: s21_cat [-bevnstET] [--number-nonblank] [--number] \
 [--squeeze-blank] file"
 
-void err_synopsis(void);
+void errcat_synopsis(void);
 
 #endif  // _PLATFORM_H

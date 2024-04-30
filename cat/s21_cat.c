@@ -11,19 +11,18 @@ int main(int argc, char* argv[]) {
 
   if (argc == 1) {
     simple_cat();
-    exit(0);
+    exit(EXIT_SUCCESS);
   }
   if ((flags = get_options(argc, argv)) == 0) {
-    err_synopsis();
-    exit(1);
+    errcat_synopsis();
   }
   if ((file = fopen(argv[argc - 1], "r")) == NULL) {
     err_sys("%s: %s", argv[0], argv[argc - 1]);
   }
 
-  exec_options(flags);
+  exec_options(flags, file);
   // print_file();
   fclose(file);
 
-  exit(0);
+  exit(EXIT_SUCCESS);
 }
