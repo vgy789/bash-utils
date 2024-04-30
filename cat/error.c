@@ -4,6 +4,8 @@
 
 void err_doit(int, int, const char*, va_list);
 
+void err_synopsis();
+
 void err_sys(const char* fmt, ...) {
   va_list vl;
   va_start(vl, fmt);
