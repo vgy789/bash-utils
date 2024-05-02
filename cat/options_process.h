@@ -4,6 +4,7 @@
 #include <getopt.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
 
 #include "./error.h"
@@ -33,18 +34,17 @@ static struct option longopts[] = {
     {"--show-tabs", no_argument, NULL, 'T'},  // LINUX
     {NULL, 0, NULL, 0}};
 
-uint16_t get_options(int, char**);
+uint16_t get_options(int, char **);
 void exec_options(uint16_t, FILE *);
 
-uint16_t set_flag(uint16_t, uint16_t);
-uint16_t unset_flag(uint16_t, uint16_t);
+uint16_t set_flag(uint16_t target, uint16_t flags, _Bool status);
 
 void simple_cat(void);
-void b();
+void b_exec(char *line, uint16_t flags);
 void e();
 void v();
-void n();
-void s();
+void n_exec();
+void s_exec();
 void t();
 void E();
 void T();

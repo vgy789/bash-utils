@@ -21,7 +21,6 @@ int main(int argc, char* argv[]) {
   }
 
   exec_options(flags, file);
-  // print_file();
   fclose(file);
 
   exit(EXIT_SUCCESS);

@@ -39,55 +39,57 @@ uint16_t get_options(int argc, char* argv[]) {
 }
 
 void exec_options(uint16_t flags, FILE* file) {
-  //char *line = NULL;
-  //size_t len = 0;
-  //ssize_t nread;
-//
-  //while ((nread = getline(&line, &len, stream)) != -1) {
-  //    printf("Retrieved line of length %zd:\n", nread);
-  //    fwrite(line, nread, 1, stdout);
-  //}
-  
-  if ((flags & squeeze_blank) == squeeze_blank) {
-    s();
-  }
-  if ((flags & number_nonblank) == number_nonblank) {
-    b();
-    flags = unset_flag(number, flags);
-  }
-  if ((flags & number) == number) {
-    n();
-  }
+  char* line = NULL;
+  size_t len = 0;
+  ssize_t n;
+
+  int line_count = 0;
+  _Bool prev = 0;
+
+  while ((n = getline(&line, &len, file)) != -1) {
+    if ((flags & squeeze_blank) == squeeze_blank) {
+      s_exec(line);
+    }
+    if ((flags & number_nonblank) == number_nonblank) {
+      flags = set_flag(number, flags, 0);
+      b_exec(line, flags);
+    }
+    if ((flags & number) == number) {
+      n_exec();
+    }
 #ifdef LINUX
-  if ((flags & show_ends) == show_ends) {
-    E();
-    flags = unset_flag(show_nonprinting, flags);
-  }
-  if ((flags & show_tabs) == show_tabs) {
-    T();
-    flags = unset_flag(show_nonprinting, flags);
-  }
+    if ((flags & show_ends) == show_ends) {
+      flags = set_flag(show_nonprinting, flags, 0);
+      E();
+    }
+    if ((flags & show_tabs) == show_tabs) {
+      flags = set_flag(show_nonprinting, flags, 0);
+      T();
+    }
 #endif
-  if ((flags & show_ends_nonprinting) == show_ends_nonprinting) {
-    e();
-    flags = set_flag(show_nonprinting, flags);
-  }
-  if ((flags & show_tabs_nonprinting) == show_tabs_nonprinting) {
-    t();
-    flags = set_flag(show_nonprinting, flags);
-  }
-  if ((flags & show_nonprinting) == show_nonprinting) {
-    v();
+    if ((flags & show_ends_nonprinting) == show_ends_nonprinting) {
+      flags = set_flag(show_nonprinting, flags, 1);
+      e();
+    }
+    if ((flags & show_tabs_nonprinting) == show_tabs_nonprinting) {
+      flags = set_flag(show_nonprinting, flags, 1);
+      t();
+    }
+    if ((flags & show_nonprinting) == show_nonprinting) {
+      v();
+    }
+
+    fwrite(line, n, 1, stdout);
   }
 }
 
-uint16_t set_flag(uint16_t target, uint16_t flags) {
-  flags &= target;
-  return flags;
-}
+uint16_t set_flag(uint16_t target, uint16_t flags, _Bool status) {
+  if (status == 1) {
+    flags &= target;
+  } else {
+    flags &= ~target;
+  }
 
-uint16_t unset_flag(uint16_t target, uint16_t flags) {
-  flags &= ~target;
   return flags;
 }
 
@@ -104,11 +106,32 @@ void simple_cat(void) {
   }
 }
 
-void b() { printf(" b "); }
-void e() { printf(" e "); }
-void v() { printf(" v "); }
-void n() { printf(" n "); }
-void s() { printf(" s "); }
-void t() { printf(" t "); }
-void E() { printf(" E "); }
-void T() { printf(" T "); }
+void b_exec(char* line, uint16_t flags) {
+  static uint32_t line_count = 0;
+
+  if (line[0] != '\n') {
+    ++line_count;
+    printf("     %d\t", line_count);
+  }
+}
+
+void e() {}
+void v() {}
+
+void n_exec() {
+  static uint32_t line_count = 0;
+
+  ++line_count;
+  printf("     %d\t", line_count);
+}
+void s_exec(char* line) {
+  // _Bool this = (line[0] == '\n');
+  // if (prev == 1 && this == 1) {
+  //   prev = 0;
+  //   continue;
+  // }
+  // prev = (line[0] == '\n');
+}
+void t() {}
+void E() {}
+void T() {}
