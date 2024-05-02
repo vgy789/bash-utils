@@ -1,44 +1,27 @@
 #include <stdio.h>
+#include <string.h>
+
+void insert_str(char* dest, const char* str, const char* substr, size_t pos) {
+  strncpy(dest, str, pos - 1);
+  dest[pos - 1] = '\0';
+  strcat(dest, substr);
+  strcat(dest, str + pos);
+}
 
 int main() {
-  char* line = NULL;
-  size_t len = 0;
-  ssize_t n;
+  char ch = '8';
+  const char* source = "abcdefg_lrmK__s\nadfsa";
+  char result[4096] = {0};
+  char add_str[3];
 
-  FILE* file;
-  file = fopen("./test/case1.txt", "r");
+  sprintf(add_str, "^%c", '@');
 
-  while ((n = getline(&line, &len, file)) != -1) {
-    while (*line != '\n' || *line != EOF) {
-      char ch = *line;
-      char* data;
-      if (ch >= 0 && ch <= 31) {
-        sprintf(data, "^%c", ch + '@');
-        puts(data, line);
-      }
-      if (ch == 127) {
-        sprintf(data, "^?");
-        fputs(data, line);
-      }
-      if (ch >= 128 && ch <= 159) {
-        sprintf(data, "M-^%c", ch + '@');
-        fputs(data, line);
-      }
-      if (ch >= 160 && ch <= 254) {
-        sprintf(data, "M-%c", ch + ' ');
-        fputs(data, line);
-      }
-      if (ch == 255) {
-        sprintf(data, "M-^?", file);
-        fputs(data, line);
-      }
-      sprintf(data, "%c", ch);
-      fputs(data, line);
-      ++line;
+  for (int i = 0; source[i] != '\n' && source[i] != EOF; ++i) {
+    const size_t pos = i + 1;
+
+    if (source[i] == 'K') {
+      insert_str(result, source, add_str, pos);
     }
-
-    // fwrite(line, n, 1, stdout);
   }
-
-  fclose(file);
+  printf("%s", result);
 }

@@ -39,10 +39,13 @@ uint16_t get_options(int argc, char* argv[]) {
 }
 
 void exec_options(uint16_t flags, FILE* file) {
-  char* line = NULL;
+  char* line = calloc(4096, sizeof(char));
+  if (line == NULL) {
+    err_sys("line is long");
+  }
+
   size_t len = 0;
   ssize_t n;
-
   int line_count = 0;
   _Bool prev = 0;
 
@@ -81,6 +84,7 @@ void exec_options(uint16_t flags, FILE* file) {
 
     fwrite(line, n, 1, stdout);
   }
+  free(line);
 }
 
 uint16_t set_flag(uint16_t target, uint16_t flags, _Bool status) {
@@ -117,19 +121,35 @@ void b_exec(char* line, uint16_t flags) {
 
 void e() {}
 
-void v_exec(char* line) {
-  while (*line != '\n' || *line != EOF) {
-    char ch = *line;
-    if (ch >= 0 && ch <= 31) fprintf(line, "^%c", ch + '@');
-    if (ch == 127) fprintf(line, "^?");
-    if (ch >= 128 && ch <= 159) fprintf(line, "M-^%c", ch + '@');
-    if (ch >= 160 && ch <= 254) fprintf(line, "M-%c", ch + ' ');
-    if (ch == 255) fprintf(line, "M-^?", line);
-    fprintf(line, "%c", ch);
+void v_exec(char* line) {}
 
-    ++line;
-  }
-}
+// void v_exec(char* line) {
+//   char result[4096] = {0};
+//   char add_str[5];
+//
+//   for (size_t i = 0; line[i] != '\n' && line[i] != EOF; ++i) {
+//     const size_t ch_pos = i + 1;
+//     char ch = line[i];
+//     if (ch >= 0 && ch <= 31) {
+//       sprintf(add_str, "^%c", ch + '@');
+//     }
+//     if (ch == 127) {
+//       sprintf(add_str, "^?");
+//     }
+//     if (ch >= 128 && ch <= 159) {
+//       sprintf(add_str, "M-^%c", ch + '@');
+//     }
+// #ifdef LINUX
+//     if (ch >= 160 && ch <= 254) {
+//       sprintf(add_str, "M-%c", ch + ' ');
+//     };
+//     if (ch == 255) {
+//       sprintf(add_str, "M-^?", ch + ' ');
+//     }
+// #endif
+//     insert_str(result, line, add_str, ch_pos);
+//   }
+// }
 
 void n_exec() {
   static uint32_t line_count = 0;
@@ -137,6 +157,7 @@ void n_exec() {
   ++line_count;
   printf("     %d\t", line_count);
 }
+
 void s_exec(char* line) {
   // _Bool this = (line[0] == '\n');
   // if (prev == 1 && this == 1) {
@@ -148,3 +169,11 @@ void s_exec(char* line) {
 void t() {}
 void E() {}
 void T() {}
+
+static void insert_str(char* dest, const char* str, const char* substr,
+                       size_t pos) {
+  strncpy(dest, str, pos);
+  dest[pos] = '\0';
+  strcat(dest, substr);
+  strcat(dest, str + pos);
+}

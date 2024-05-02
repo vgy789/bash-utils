@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 
 #include "./error.h"
@@ -34,13 +35,13 @@ static struct option longopts[] = {
     {"--show-tabs", no_argument, NULL, 'T'},  // LINUX
     {NULL, 0, NULL, 0}};
 
-uint16_t get_options(int, char **);
-void exec_options(uint16_t, FILE *);
+uint16_t get_options(int, char**);
+void exec_options(uint16_t, FILE*);
 
 uint16_t set_flag(uint16_t target, uint16_t flags, _Bool status);
 
 void simple_cat(void);
-void b_exec(char *line, uint16_t flags);
+void b_exec(char* line, uint16_t flags);
 void e();
 void v_exec();
 void n_exec();
@@ -48,5 +49,8 @@ void s_exec();
 void t();
 void E();
 void T();
+
+static void insert_str(char* dest, const char* str, const char* substr,
+                       size_t pos);
 
 #endif  // _OPTIONS_PROCESSING_H
