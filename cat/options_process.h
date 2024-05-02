@@ -42,7 +42,7 @@ uint16_t set_flag(uint16_t target, uint16_t flags, _Bool status);
 void simple_cat(void);
 void b_exec(char *line, uint16_t flags);
 void e();
-void v();
+void v_exec();
 void n_exec();
 void s_exec();
 void t();

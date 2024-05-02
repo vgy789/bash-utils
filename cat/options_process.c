@@ -76,7 +76,7 @@ void exec_options(uint16_t flags, FILE* file) {
       t();
     }
     if ((flags & show_nonprinting) == show_nonprinting) {
-      v();
+      v_exec(line);
     }
 
     fwrite(line, n, 1, stdout);
@@ -116,7 +116,20 @@ void b_exec(char* line, uint16_t flags) {
 }
 
 void e() {}
-void v() {}
+
+void v_exec(char* line) {
+  while (*line != '\n' || *line != EOF) {
+    char ch = *line;
+    if (ch >= 0 && ch <= 31) fprintf(line, "^%c", ch + '@');
+    if (ch == 127) fprintf(line, "^?");
+    if (ch >= 128 && ch <= 159) fprintf(line, "M-^%c", ch + '@');
+    if (ch >= 160 && ch <= 254) fprintf(line, "M-%c", ch + ' ');
+    if (ch == 255) fprintf(line, "M-^?", line);
+    fprintf(line, "%c", ch);
+
+    ++line;
+  }
+}
 
 void n_exec() {
   static uint32_t line_count = 0;
