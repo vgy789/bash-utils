@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-std=c11 -pedantic
+CFLAGS=-Wall -Werror -Wextra -std=c11 -pedantic
 OUTPUT_FILE=s21_cat
 
 all: build
@@ -11,9 +11,6 @@ $(OUTPUT_FILE): cat_utility.o platform.o error.o
 
 cat_utility.o:
 	$(CC) $(CFLAGS) -c cat_utility.c
-
-simple_cat_utility.o:
-	$(CC) $(CFLAGS) -c simple_cat_utility.c
 
 platform.o: error.o
 	$(CC) $(CFLAGS) -c platform.c
