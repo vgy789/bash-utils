@@ -2,178 +2,227 @@
 
 uint16_t get_options(int argc, char* argv[]) {
   char ch;
-  uint16_t flag = 0;
+  uint16_t flags = 0;
+  struct option longopts[] = {
+      {"--number-nonblank", no_argument, NULL, 'b'},
+      {"--show-ends-nonprinting", no_argument, NULL, 'e'},
+      {"--show-nonprinting", no_argument, NULL, 'v'},
+      {"--number", no_argument, NULL, 'n'},
+      {"--squeeze-blank", no_argument, NULL, 's'},
+      {"--show-tabs-nonprinting", no_argument, NULL, 't'},
+      {"--show-ends", no_argument, NULL, 'E'},  // LINUX
+      {"--show-tabs", no_argument, NULL, 'T'},  // LINUX
+      {NULL, 0, NULL, 0}};
+#ifdef MAC
+  while ((ch = getopt_long(argc, argv, "bevnst", longopts, NULL)) != -1) {
+#endif  // MAC
+#ifdef LINUX
+    while ((ch = getopt_long(argc, argv, "bevnstET", longopts, NULL)) != -1) {
+#endif  // LINUX
+      switch (ch) {
+        case 'b':
+          flags = set_option(number_nonblank, flags, 1);
+          break;
+        case 'e':
+          flags = set_option(show_ends, flags, 1);
+          flags = set_option(show_nonprinting, flags, 1);
+          break;
+        case 'v':
+          flags = set_option(show_nonprinting, flags, 1);
+          break;
+        case 'n':
+          flags = set_option(number, flags, 1);
+          break;
+        case 's':
+          flags = set_option(squeeze_blank, flags, 1);
+          break;
+        case 't':
+          flags = set_option(show_tabs, flags, 1);
+          flags = set_option(show_nonprinting, flags, 1);
+          break;
+        case 'E':
+          flags = set_option(show_ends, flags, 1);
+          break;
+        case 'T':
+          flags = set_option(show_tabs, flags, 1);
+          break;
+        case '?':
+          errcat_synopsis();
+      }
+    }
+    if (optind < argc) {
+      flags = set_option(is_filename, flags, 1);
+    }
+    return flags;
+  }
 
-  while ((ch = getopt_long(argc, argv, "bevnstET", longopts, NULL)) != -1) {
-    switch (ch) {
-      case 'b':
-        flag |= number_nonblank;
-        break;
-      case 'e':
-        flag |= show_ends_nonprinting;
-        break;
-      case 'v':
-        flag |= show_nonprinting;
-        break;
-      case 'n':
-        flag |= number;
-        break;
-      case 's':
-        flag |= squeeze_blank;
-        break;
-      case 't':
-        flag |= show_tabs_nonprinting;
-        break;
-      case 'E':
-        flag |= show_ends;
-        break;
-      case 'T':
-        flag |= show_tabs;
-        break;
-      case '?':
-        flag = 0;
-        errcat_synopsis();
+  _Bool is_eof(FILE * file) {
+    _Bool eof;
+
+    if ((eof = (fgetc(file)) != EOF)) {
+      fseek(file, -1, SEEK_CUR);
+    }
+    return eof;
+  }
+
+  void exec_options(uint16_t flags, FILE * file) {
+    _Bool flag_numreset;
+    int ch;
+#ifdef LINUX
+    flag_numreset = 0;
+#endif  // LINUX
+#ifdef MAC
+    flag_numreset = 1;
+#endif  // MAC
+
+    while ((ch = fgetc(file)) != EOF) {
+      if (get_option(squeeze_blank, flags)) {
+        if (exec_squeeze_blank(ch, file)) {
+          continue;
+        }
+      }
+      if (get_option(number_nonblank, flags)) {
+        flags = set_option(number, flags, 0);
+        // исправь флаг сброса для линуха
+        if (exec_number_nonblank(flag_numreset, ch, file)) {
+          continue;
+        }
+      }
+      if (get_option(number, flags)) {
+        // исправь флаг сброса для линуха
+        if (exec_number(flag_numreset, ch, file)) {
+          continue;
+        }
+      }
+      if (get_option(show_nonprinting, flags)) {
+        ch = exec_show_nonprinting(ch);
+      }
+      if (get_option(show_tabs, flags)) {
+        if (ch == '\t') {
+          printf("^I");
+          continue;
+        }
+      }
+      if (ch != '\n') printf("%c", ch);
+      if (get_option(show_ends, flags)) {
+        exec_show_ends(ch);
+      }
+      if (ch == '\n') printf("%c", ch);
     }
   }
-  return flag;
-}
 
-void exec_options(uint16_t flags, FILE* file) {
-  char* line = calloc(4096, sizeof(char));
-  if (line == NULL) {
-    err_sys("line is long");
+  void exec_show_ends(int ch) {
+    if (ch == '\n') printf("$");
   }
 
-  size_t len = 0;
-  ssize_t n;
-  int line_count = 0;
-  _Bool prev = 0;
+  _Bool get_option(uint16_t option, uint16_t flags) {
+    return (flags & option) == option;
+  }
 
-  while ((n = getline(&line, &len, file)) != -1) {
-    if ((flags & squeeze_blank) == squeeze_blank) {
-      s_exec(line);
+  uint16_t set_option(uint16_t target, uint16_t flags, _Bool status) {
+    if (status == 1) {
+      flags |= target;
+    } else {
+      flags &= ~target;
     }
-    if ((flags & number_nonblank) == number_nonblank) {
-      flags = set_flag(number, flags, 0);
-      b_exec(line, flags);
+    return flags;
+  }
+
+  void simple_cat(uint16_t flags) {
+    int n = 0;
+    int buf[MAXLINE];
+
+    exec_options(flags, stdin);
+    while ((n = read(STDIN_FILENO, buf, MAXLINE)) != 0) {
+      exec_options(flags, stdin);
+      if (write(STDOUT_FILENO, buf, n) != n) {
+        err_sys("input error");
+      }
     }
-    if ((flags & number) == number) {
-      n_exec();
+    if (n == -1) {
+      err_sys("read error");
+    }
+  }
+
+  _Bool exec_squeeze_blank(char ch, FILE* file) {
+    static _Bool is_prevsymbol = 0;
+    char next_char;
+    _Bool contin;
+
+    if ((next_char = fgetc(file)) != EOF) {
+      contin = (is_prevsymbol == 0 && ch == '\n' && next_char == '\n');
+      fseek(file, -1, SEEK_CUR);
+    }
+    is_prevsymbol = (ch != '\n');
+    return contin;
+  }
+
+  _Bool exec_number_nonblank(_Bool reset_flag, char ch, FILE* file) {
+    static _Bool is_prevsymbol = 0;
+    char next_char;
+    static uint32_t line_count = 0;
+    _Bool contin = 0;
+
+    //if (reset_flag) line_count = 0;
+    if (ch == '\n' || line_count == 0) {
+      if ((next_char = fgetc(file)) != EOF) {
+        if (is_prevsymbol == 0 && ch == '\n' && next_char != '\n') {
+          ++line_count;
+          contin = 1;
+          if (line_count > 0) printf("\n");
+          printf("%6d\t", line_count);
+          if ((fgetc(file)) == EOF) {
+            printf("\n");
+          } else {
+            fseek(file, -1, SEEK_CUR);
+          }
+        }
+        fseek(file, -1, SEEK_CUR);
+      }
+    }
+    is_prevsymbol = (ch != '\n');
+    return contin;
+  }
+
+  _Bool exec_number(_Bool reset_flag, char ch, FILE* file) {
+    static uint32_t line_count = 0;
+    _Bool contin = 0;
+
+    //if (reset_flag) line_count = 0;
+    if (ch == '\n' || line_count == 0) {
+      ++line_count;
+      contin = 1;
+      if (line_count > 1) printf("\n");
+      printf("%6d\t", line_count);
+      if ((fgetc(file)) == EOF) {
+        printf("\n");
+      } else {
+        fseek(file, -1, SEEK_CUR);
+      }
+    }
+    return contin;
+  }
+
+  char exec_show_nonprinting(char ch) {
+    if ((ch >= 0 && ch < 9) || (ch > 10 && ch <= 31)) {
+      printf("^");
+      ch += '@';
+    }
+    if (ch == 127) {
+      printf("M-^?");
+    }
+    if (ch <= -97) {
+      printf("M-^");
+      ch += 128 + '@';
     }
 #ifdef LINUX
-    if ((flags & show_ends) == show_ends) {
-      flags = set_flag(show_nonprinting, flags, 0);
-      E();
+    if (ch >= -96 && ch <= -2) {
+      printf("sprintf(notation, " M - % c ")");
+      ch += 96 + ' ';
     }
-    if ((flags & show_tabs) == show_tabs) {
-      flags = set_flag(show_nonprinting, flags, 0);
-      T();
+    if (ch == -1) {
+      printf("M-^?");
     }
-#endif
-    if ((flags & show_ends_nonprinting) == show_ends_nonprinting) {
-      flags = set_flag(show_nonprinting, flags, 1);
-      e();
-    }
-    if ((flags & show_tabs_nonprinting) == show_tabs_nonprinting) {
-      flags = set_flag(show_nonprinting, flags, 1);
-      t();
-    }
-    if ((flags & show_nonprinting) == show_nonprinting) {
-      v_exec(line);
-    }
-
-    fwrite(line, n, 1, stdout);
+#endif  // LINUX
+    return ch;
   }
-  free(line);
-}
-
-uint16_t set_flag(uint16_t target, uint16_t flags, _Bool status) {
-  if (status == 1) {
-    flags &= target;
-  } else {
-    flags &= ~target;
-  }
-
-  return flags;
-}
-
-void simple_cat(void) {
-  int n = 0;
-  int buf[MAXLINE];
-  while ((n = read(STDIN_FILENO, buf, MAXLINE)) != 0) {
-    if (write(STDOUT_FILENO, buf, n) != n) {
-      err_sys("input error");
-    }
-  }
-  if (n == -1) {
-    err_sys("read error");
-  }
-}
-
-void b_exec(char* line, uint16_t flags) {
-  static uint32_t line_count = 0;
-
-  if (line[0] != '\n') {
-    ++line_count;
-    printf("     %d\t", line_count);
-  }
-}
-
-void e() {}
-
-void v_exec(char* line) {}
-
-// void v_exec(char* line) {
-//   char result[4096] = {0};
-//   char add_str[5];
-//
-//   for (size_t i = 0; line[i] != '\n' && line[i] != EOF; ++i) {
-//     const size_t ch_pos = i + 1;
-//     char ch = line[i];
-//     if (ch >= 0 && ch <= 31) {
-//       sprintf(add_str, "^%c", ch + '@');
-//     }
-//     if (ch == 127) {
-//       sprintf(add_str, "^?");
-//     }
-//     if (ch >= 128 && ch <= 159) {
-//       sprintf(add_str, "M-^%c", ch + '@');
-//     }
-// #ifdef LINUX
-//     if (ch >= 160 && ch <= 254) {
-//       sprintf(add_str, "M-%c", ch + ' ');
-//     };
-//     if (ch == 255) {
-//       sprintf(add_str, "M-^?", ch + ' ');
-//     }
-// #endif
-//     insert_str(result, line, add_str, ch_pos);
-//   }
-// }
-
-void n_exec() {
-  static uint32_t line_count = 0;
-
-  ++line_count;
-  printf("     %d\t", line_count);
-}
-
-void s_exec(char* line) {
-  // _Bool this = (line[0] == '\n');
-  // if (prev == 1 && this == 1) {
-  //   prev = 0;
-  //   continue;
-  // }
-  // prev = (line[0] == '\n');
-}
-void t() {}
-void E() {}
-void T() {}
-
-static void insert_str(char* dest, const char* str, const char* substr,
-                       size_t pos) {
-  strncpy(dest, str, pos);
-  dest[pos] = '\0';
-  strcat(dest, substr);
-  strcat(dest, str + pos);
-}

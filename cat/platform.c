@@ -1,11 +1,10 @@
 #include "platform.h"
 
+#define LINUX
 void errcat_synopsis(void) {
 #ifdef MAC
-  err_msg(MAC_SYNOPSIS);
-  exit(EXIT_FAILURE);
+  err_sys(MAC_SYNOPSIS);
 #elif defined(LINUX)
-  err_msg(LINUX_SYNOPSIS);
-  exit(EXIT_FAILURE);
+  err_sys(LINUX_SYNOPSIS);
 #endif
 }

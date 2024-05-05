@@ -1,6 +1,6 @@
 CC=gcc
-CFLAGS=
-#-Werror -Wextra -std=c11 -pedantic
+#-Wall
+CFLAGS=-Werror -Wextra -std=c11 -pedantic
 OUTPUT_FILE=s21_cat
 
 all: build
