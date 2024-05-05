@@ -1,17 +1,19 @@
 CC=gcc
-#-Wall
-CFLAGS=-Werror -Wextra -std=c11 -pedantic
+CFLAGS=-std=c11 -pedantic
 OUTPUT_FILE=s21_cat
 
 all: build
 
 build: $(OUTPUT_FILE)
 
-$(OUTPUT_FILE): options_process.o platform.o error.o
+$(OUTPUT_FILE): cat_utility.o platform.o error.o
 	$(CC) $(CFLAGS) -o $(OUTPUT_FILE) s21_cat.c $^
 
-options_process: process.o platform.o
-	$(CC) $(CFLAGS) -c options_process.c
+cat_utility.o:
+	$(CC) $(CFLAGS) -c cat_utility.c
+
+simple_cat_utility.o:
+	$(CC) $(CFLAGS) -c simple_cat_utility.c
 
 platform.o: error.o
 	$(CC) $(CFLAGS) -c platform.c

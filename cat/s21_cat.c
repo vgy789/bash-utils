@@ -1,8 +1,8 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#include "./cat_utility.h"
 #include "./error.h"
-#include "./options_process.h"
 #include "./platform.h"
 
 int main(int argc, char* argv[]) {
@@ -20,7 +20,6 @@ int main(int argc, char* argv[]) {
     if ((file = fopen(argv[i], "r")) == NULL) {
       err_sys("%s: %s", argv[0], argv[i]);
     }
-    // if (optind < i) putchar('\n');
 
     exec_options(flags, file);
     fclose(file);

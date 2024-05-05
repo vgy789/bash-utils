@@ -1,4 +1,38 @@
-#include "./options_process.h"
+#include "./cat_utility.h"
+
+uint16_t process_option(char ch, uint16_t flags) {
+  switch (ch) {
+    case 'b':
+      flags = set_option(number_nonblank, flags, 1);
+      break;
+    case 'e':
+      flags = set_option(show_ends, flags, 1);
+      flags = set_option(show_nonprinting, flags, 1);
+      break;
+    case 'v':
+      flags = set_option(show_nonprinting, flags, 1);
+      break;
+    case 'n':
+      flags = set_option(number, flags, 1);
+      break;
+    case 's':
+      flags = set_option(squeeze_blank, flags, 1);
+      break;
+    case 't':
+      flags = set_option(show_tabs, flags, 1);
+      flags = set_option(show_nonprinting, flags, 1);
+      break;
+    case 'E':
+      flags = set_option(show_ends, flags, 1);
+      break;
+    case 'T':
+      flags = set_option(show_tabs, flags, 1);
+      break;
+    case '?':
+      errcat_synopsis();
+  }
+  return flags;
+}
 
 uint16_t get_options(int argc, char* argv[]) {
   char ch;
@@ -13,64 +47,25 @@ uint16_t get_options(int argc, char* argv[]) {
       {"--show-ends", no_argument, NULL, 'E'},  // LINUX
       {"--show-tabs", no_argument, NULL, 'T'},  // LINUX
       {NULL, 0, NULL, 0}};
+
 #ifdef MAC
   while ((ch = getopt_long(argc, argv, "bevnst", longopts, NULL)) != -1) {
 #endif  // MAC
 #ifdef LINUX
     while ((ch = getopt_long(argc, argv, "bevnstET", longopts, NULL)) != -1) {
 #endif  // LINUX
-      switch (ch) {
-        case 'b':
-          flags = set_option(number_nonblank, flags, 1);
-          break;
-        case 'e':
-          flags = set_option(show_ends, flags, 1);
-          flags = set_option(show_nonprinting, flags, 1);
-          break;
-        case 'v':
-          flags = set_option(show_nonprinting, flags, 1);
-          break;
-        case 'n':
-          flags = set_option(number, flags, 1);
-          break;
-        case 's':
-          flags = set_option(squeeze_blank, flags, 1);
-          break;
-        case 't':
-          flags = set_option(show_tabs, flags, 1);
-          flags = set_option(show_nonprinting, flags, 1);
-          break;
-        case 'E':
-          flags = set_option(show_ends, flags, 1);
-          break;
-        case 'T':
-          flags = set_option(show_tabs, flags, 1);
-          break;
-        case '?':
-          errcat_synopsis();
-      }
+      flags = process_option(ch, flags);
     }
+
     if (optind < argc) {
       flags = set_option(is_filename, flags, 1);
     }
     return flags;
   }
 
-  _Bool is_eof(FILE * file) {
-    _Bool eof;
-
-    if ((eof = (fgetc(file)) != EOF)) {
-      fseek(file, -1, SEEK_CUR);
-    }
-    return eof;
-  }
-
   void exec_options(uint16_t flags, FILE * file) {
-    _Bool flag_numreset;
+    _Bool flag_numreset = 0;
     int ch;
-#ifdef LINUX
-    flag_numreset = 0;
-#endif  // LINUX
 #ifdef MAC
     flag_numreset = 1;
 #endif  // MAC
@@ -83,19 +78,19 @@ uint16_t get_options(int argc, char* argv[]) {
       }
       if (get_option(number_nonblank, flags)) {
         flags = set_option(number, flags, 0);
-        // исправь флаг сброса для линуха
         if (exec_number_nonblank(flag_numreset, ch, file)) {
+          flag_numreset = 0;
           continue;
         }
       }
       if (get_option(number, flags)) {
-        // исправь флаг сброса для линуха
         if (exec_number(flag_numreset, ch, file)) {
+          flag_numreset = 0;
           continue;
         }
       }
       if (get_option(show_nonprinting, flags)) {
-        ch = exec_show_nonprinting(ch);
+        ch = exec_nonprinting(ch);
       }
       if (get_option(show_tabs, flags)) {
         if (ch == '\t') {
@@ -105,13 +100,13 @@ uint16_t get_options(int argc, char* argv[]) {
       }
       if (ch != '\n') printf("%c", ch);
       if (get_option(show_ends, flags)) {
-        exec_show_ends(ch);
+        exec_ends(ch);
       }
       if (ch == '\n') printf("%c", ch);
     }
   }
 
-  void exec_show_ends(int ch) {
+  void exec_ends(int ch) {
     if (ch == '\n') printf("$");
   }
 
@@ -158,29 +153,26 @@ uint16_t get_options(int argc, char* argv[]) {
   }
 
   _Bool exec_number_nonblank(_Bool reset_flag, char ch, FILE* file) {
-    static _Bool is_prevsymbol = 0;
-    char next_char;
     static uint32_t line_count = 0;
     _Bool contin = 0;
+    char next_char;
 
-    //if (reset_flag) line_count = 0;
-    if (ch == '\n' || line_count == 0) {
+    // if (reset_flag) line_count = 0;
+    if (line_count == 0 && ch != '\n') {
+      ++line_count;
+      printf("%6d\t", line_count);
+    }
+    if (ch == '\n') {
       if ((next_char = fgetc(file)) != EOF) {
-        if (is_prevsymbol == 0 && ch == '\n' && next_char != '\n') {
+        if (next_char != '\n') {
           ++line_count;
           contin = 1;
-          if (line_count > 0) printf("\n");
-          printf("%6d\t", line_count);
-          if ((fgetc(file)) == EOF) {
-            printf("\n");
-          } else {
-            fseek(file, -1, SEEK_CUR);
-          }
+          printf("\n%6d\t", line_count);
         }
+
         fseek(file, -1, SEEK_CUR);
       }
     }
-    is_prevsymbol = (ch != '\n');
     return contin;
   }
 
@@ -188,28 +180,42 @@ uint16_t get_options(int argc, char* argv[]) {
     static uint32_t line_count = 0;
     _Bool contin = 0;
 
-    //if (reset_flag) line_count = 0;
-    if (ch == '\n' || line_count == 0) {
+    // if (reset_flag) line_count = 0;
+    if (line_count == 0 && ch != '\n') {
       ++line_count;
-      contin = 1;
-      if (line_count > 1) printf("\n");
       printf("%6d\t", line_count);
-      if ((fgetc(file)) == EOF) {
-        printf("\n");
-      } else {
-        fseek(file, -1, SEEK_CUR);
-      }
     }
+    if (ch == '\n') {
+      ++line_count;
+      if (line_count == 1) {
+        printf("%6d\t\n", line_count);
+        ++line_count;
+        if ((fgetc(file)) != EOF) {
+          fseek(file, -1, SEEK_CUR);
+          printf("%6d\t", line_count);
+        }
+      } else {
+        if ((fgetc(file)) == EOF) {
+          printf("\n");
+        } else {
+          fseek(file, -1, SEEK_CUR);
+          printf("\n%6d\t", line_count);
+        }
+      }
+      contin = 1;
+    }
+
     return contin;
   }
 
-  char exec_show_nonprinting(char ch) {
+  char exec_nonprinting(char ch) {
     if ((ch >= 0 && ch < 9) || (ch > 10 && ch <= 31)) {
       printf("^");
       ch += '@';
     }
     if (ch == 127) {
-      printf("M-^?");
+      printf("^");
+      ch = '?';
     }
     if (ch <= -97) {
       printf("M-^");
@@ -217,7 +223,7 @@ uint16_t get_options(int argc, char* argv[]) {
     }
 #ifdef LINUX
     if (ch >= -96 && ch <= -2) {
-      printf("sprintf(notation, " M - % c ")");
+      printf("M-");
       ch += 96 + ' ';
     }
     if (ch == -1) {
