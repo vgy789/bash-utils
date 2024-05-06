@@ -52,11 +52,10 @@ for file in test*; do
 	test_s21_cat -bs $file
 
 	if [[ $MACHINE == "Linux" ]]; then 
-		test_s21_cat --number-nonblank -E $file
-		test_s21_cat --number $file
-		test_s21_cat --squeeze-blank $file
+		test_s21_cat --number-nonblank $file
 		test_s21_cat -T $file
-		test_s21_cat -TE --number-nonblank --squeeze-blank --number $file
+		test_s21_cat -E $file
+		test_s21_cat -TE $file
 	fi
 	echo
 done

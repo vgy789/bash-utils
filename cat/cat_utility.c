@@ -37,16 +37,15 @@ uint16_t process_option(char ch, uint16_t flags) {
 uint16_t get_options(int argc, char* argv[]) {
   char ch;
   uint16_t flags = 0;
-  struct option longopts[] = {
-      {"--number-nonblank", no_argument, NULL, 'b'},
-      {"--show-ends-nonprinting", no_argument, NULL, 'e'},
-      {"--show-nonprinting", no_argument, NULL, 'v'},
-      {"--number", no_argument, NULL, 'n'},
-      {"--squeeze-blank", no_argument, NULL, 's'},
-      {"--show-tabs-nonprinting", no_argument, NULL, 't'},
-      {"--show-ends", no_argument, NULL, 'E'},  // LINUX
-      {"--show-tabs", no_argument, NULL, 'T'},  // LINUX
-      {NULL, 0, NULL, 0}};
+  struct option longopts[] = {{"number-nonblank", no_argument, NULL, 'b'},
+                              {"show-ends-nonprinting", no_argument, NULL, 'e'},
+                              {"show-nonprinting", no_argument, NULL, 'v'},
+                              {"number", no_argument, NULL, 'n'},
+                              {"squeeze-blank", no_argument, NULL, 's'},
+                              {"show-tabs-nonprinting", no_argument, NULL, 't'},
+                              {"show-ends", no_argument, NULL, 'E'},  // LINUX
+                              {"show-tabs", no_argument, NULL, 'T'},  // LINUX
+                              {NULL, 0, NULL, 0}};
 
 #ifdef MAC
   while ((ch = getopt_long(argc, argv, "bevnst", longopts, NULL)) != -1) {
@@ -157,7 +156,6 @@ uint16_t get_options(int argc, char* argv[]) {
     _Bool contin = 0;
     char next_char;
 
-    
     if (line_count == 0 && ch != '\n') {
       ++line_count;
       printf("%6d\t", line_count);
