@@ -81,12 +81,14 @@ uint16_t get_options(int argc, char* argv[]) {
           flag_numreset = 0;
           continue;
         }
+        flag_numreset = 0;
       }
       if (get_option(number, flags)) {
         if (exec_number(flag_numreset, ch, file)) {
           flag_numreset = 0;
           continue;
         }
+        flag_numreset = 0;
       }
       if (get_option(show_nonprinting, flags)) {
         ch = exec_nonprinting(ch);
@@ -156,6 +158,7 @@ uint16_t get_options(int argc, char* argv[]) {
     _Bool contin = 0;
     char next_char;
 
+    if (reset_flag) line_count = 0; 
     if (line_count == 0 && ch != '\n') {
       ++line_count;
       printf("%6d\t", line_count);
@@ -176,9 +179,9 @@ uint16_t get_options(int argc, char* argv[]) {
 
   _Bool exec_number(_Bool reset_flag, char ch, FILE* file) {
     static uint32_t line_count = 0;
-    static _Bool is_firstcall = 1;
     _Bool contin = 0;
 
+    if (reset_flag) line_count = 0; 
     if (line_count == 0 && ch != '\n') {
       ++line_count;
       printf("%6d\t", line_count);

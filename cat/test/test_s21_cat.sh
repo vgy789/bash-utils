@@ -13,8 +13,8 @@ test_s21_cat() {
 	local cat_output="a_output.txt"
     local s21_cat_output="b_output.txt"
 
-	"../s21_cat" "$option" "$file" > "$cat_output"
-    cat "$option" "$file" > "$s21_cat_output"
+	"../s21_cat" "$option" "$file" "$file" > "$cat_output"
+    cat "$option" "$file" "$file" > "$s21_cat_output"
 
 	if ! diff -q "$cat_output" "$s21_cat_output" > /dev/null; then
 		status="$ERROR_MSG"
