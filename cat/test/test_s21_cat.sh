@@ -1,6 +1,5 @@
 #!/bin/bash
 
-
 OK_MSG="OK"
 ERROR_MSG="ERROR"
 
@@ -13,7 +12,7 @@ test_s21_cat() {
 	local status="$OK_MSG"
 	local cat_output="a_output.txt"
     local s21_cat_output="b_output.txt"
-	
+
 	"../s21_cat" "$option" "$file" > "$cat_output"
     cat "$option" "$file" > "$s21_cat_output"
 
