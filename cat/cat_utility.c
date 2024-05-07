@@ -37,21 +37,12 @@ uint16_t process_option(char ch, uint16_t flags) {
 uint16_t get_options(int argc, char* argv[]) {
   char ch;
   uint16_t flags = 0;
-  struct option longopts[] = {{"number-nonblank", no_argument, NULL, 'b'},
-                              {"show-ends-nonprinting", no_argument, NULL, 'e'},
-                              {"show-nonprinting", no_argument, NULL, 'v'},
-                              {"number", no_argument, NULL, 'n'},
-                              {"squeeze-blank", no_argument, NULL, 's'},
-                              {"show-tabs-nonprinting", no_argument, NULL, 't'},
-                              {"show-ends", no_argument, NULL, 'E'},  // LINUX
-                              {"show-tabs", no_argument, NULL, 'T'},  // LINUX
-                              {NULL, 0, NULL, 0}};
 
 #ifdef MAC
-  while ((ch = getopt_long(argc, argv, "bevnst", longopts, NULL)) != -1) {
+  while ((ch = getopt_long(argc, argv, "bevnst", long_options, NULL)) != -1) {
 #endif  // MAC
 #ifdef LINUX
-    while ((ch = getopt_long(argc, argv, "bevnstET", longopts, NULL)) != -1) {
+    while ((ch = getopt_long(argc, argv, "bevnstET", long_options, NULL)) != -1) {
 #endif  // LINUX
       flags = process_option(ch, flags);
     }
@@ -62,29 +53,29 @@ uint16_t get_options(int argc, char* argv[]) {
     return flags;
   }
 
-  void exec_options(uint16_t flags, FILE * file) {
+  void exec_options(uint16_t flags, FILE * fp) {
     _Bool flag_numreset = 0;
     int ch;
 #ifdef MAC
     flag_numreset = 1;
 #endif  // MAC
 
-    while ((ch = fgetc(file)) != EOF) {
+    while ((ch = fgetc(fp)) != EOF) {
       if (get_option(squeeze_blank, flags)) {
-        if (exec_squeeze_blank(ch, file)) {
+        if (exec_squeeze_blank(ch, fp)) {
           continue;
         }
       }
       if (get_option(number_nonblank, flags)) {
         flags = set_option(number, flags, 0);
-        if (exec_number_nonblank(flag_numreset, ch, file)) {
+        if (exec_number_nonblank(flag_numreset, ch, fp)) {
           flag_numreset = 0;
           continue;
         }
         flag_numreset = 0;
       }
       if (get_option(number, flags)) {
-        if (exec_number(flag_numreset, ch, file)) {
+        if (exec_number(flag_numreset, ch, fp)) {
           flag_numreset = 0;
           continue;
         }
@@ -140,48 +131,48 @@ uint16_t get_options(int argc, char* argv[]) {
     }
   }
 
-  _Bool exec_squeeze_blank(char ch, FILE* file) {
+  _Bool exec_squeeze_blank(char ch, FILE* fp) {
     static _Bool is_prevsymbol = 0;
     char next_char;
     _Bool contin;
 
-    if ((next_char = fgetc(file)) != EOF) {
+    if ((next_char = fgetc(fp)) != EOF) {
       contin = (is_prevsymbol == 0 && ch == '\n' && next_char == '\n');
-      fseek(file, -1, SEEK_CUR);
+      fseek(fp, -1, SEEK_CUR);
     }
     is_prevsymbol = (ch != '\n');
     return contin;
   }
 
-  _Bool exec_number_nonblank(_Bool reset_flag, char ch, FILE* file) {
+  _Bool exec_number_nonblank(_Bool reset_flag, char ch, FILE* fp) {
     static uint32_t line_count = 0;
     _Bool contin = 0;
     char next_char;
 
-    if (reset_flag) line_count = 0; 
+    if (reset_flag) line_count = 0;
     if (line_count == 0 && ch != '\n') {
       ++line_count;
       printf("%6d\t", line_count);
     }
     if (ch == '\n') {
-      if ((next_char = fgetc(file)) != EOF) {
+      if ((next_char = fgetc(fp)) != EOF) {
         if (next_char != '\n') {
           ++line_count;
           contin = 1;
           printf("\n%6d\t", line_count);
         }
 
-        fseek(file, -1, SEEK_CUR);
+        fseek(fp, -1, SEEK_CUR);
       }
     }
     return contin;
   }
 
-  _Bool exec_number(_Bool reset_flag, char ch, FILE* file) {
+  _Bool exec_number(_Bool reset_flag, char ch, FILE* fp) {
     static uint32_t line_count = 0;
     _Bool contin = 0;
 
-    if (reset_flag) line_count = 0; 
+    if (reset_flag) line_count = 0;
     if (line_count == 0 && ch != '\n') {
       ++line_count;
       printf("%6d\t", line_count);
@@ -191,15 +182,15 @@ uint16_t get_options(int argc, char* argv[]) {
       if (line_count == 1) {
         printf("%6d\t\n", line_count);
         ++line_count;
-        if ((fgetc(file)) != EOF) {
-          fseek(file, -1, SEEK_CUR);
+        if ((fgetc(fp)) != EOF) {
+          fseek(fp, -1, SEEK_CUR);
           printf("%6d\t", line_count);
         }
       } else {
-        if ((fgetc(file)) == EOF) {
+        if ((fgetc(fp)) == EOF) {
           printf("\n");
         } else {
-          fseek(file, -1, SEEK_CUR);
+          fseek(fp, -1, SEEK_CUR);
           printf("\n%6d\t", line_count);
         }
       }

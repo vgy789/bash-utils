@@ -13,10 +13,10 @@ cat_utility.o:
 	$(CC) $(CFLAGS) -c cat_utility.c
 
 platform.o: error.o
-	$(CC) $(CFLAGS) -c platform.c
+	$(CC) $(CFLAGS) -c ../common/platform.c
 
 error.o:
-	$(CC) $(CFLAGS) -c error.c
+	$(CC) $(CFLAGS) -c ../common/error.c
 
 clean:
 	rm -rf *.o $(OUTPUT_FILE)

@@ -2,8 +2,8 @@
 #include <stdio.h>
 
 #include "./cat_utility.h"
-#include "./error.h"
-#include "./platform.h"
+#include "../common/error.h"
+#include "../common/platform.h"
 
 int main(int argc, char* argv[]) {
   FILE* file = NULL;
