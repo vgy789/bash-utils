@@ -8,29 +8,47 @@
 #include <string.h>
 
 #include "../common/error.h"
-#include "../common/platform.h"
 
-#define MAXLINE 4096
+#if defined(__APPLE__) || defined(__MACH__)
+#ifndef __APPLE__
+#define __APPLE__
+#endif  // __APPLE__
+#define SYNOPSIS \
+  "usage: s21_cat [-bevnst] [--number-nonblank] [--number] [file ...]"
+static char const short_options[] = "bevnst";
+
+#elif defined(__linux__) || defined(linux) || defined(__linux)
+#ifndef __linux__
+#define __linux__
+#endif  // __linux__
+#define SYNOPSIS \
+  "usage: s21_cat [-bEevnsTt] [--number-nonblank] [--number] \
+[--squeeze-blank] [file ...]"
+static char const short_options[] = "bEevnsTt";
+#endif
+
+enum { maxline = 4096 };
 
 enum flag {
-  number_nonblank = 1,        /* -b */
-  show_nonprinting = 1 << 2,  /* -v */
-  number = 1 << 3,            /* -n */
-  squeeze_blank = 1 << 4,     /* -s */
-  show_ends = 1 << 5,         /* -E */
-  show_tabs = 1 << 6,         /* -T */
+  number_nonblank = 1,       /* -b */
+  show_nonprinting = 1 << 2, /* -v */
+  number = 1 << 3,           /* -n */
+  squeeze_blank = 1 << 4,    /* -s */
+  show_ends = 1 << 5,        /* -E */
+  show_tabs = 1 << 6,        /* -T */
   is_filename = 1 << 10,
 };
 
-static struct option const long_options[] = {{"number-nonblank", no_argument, NULL, 'b'},
-                              {"show-ends-nonprinting", no_argument, NULL, 'e'},
-                              {"show-nonprinting", no_argument, NULL, 'v'},
-                              {"number", no_argument, NULL, 'n'},
-                              {"squeeze-blank", no_argument, NULL, 's'},
-                              {"show-tabs-nonprinting", no_argument, NULL, 't'},
-                              {"show-ends", no_argument, NULL, 'E'},  // LINUX
-                              {"show-tabs", no_argument, NULL, 'T'},  // LINUX
-                              {NULL, 0, NULL, 0}};
+static struct option const long_options[] = {
+    {"number-nonblank", no_argument, NULL, 'b'},
+    {"show-ends-nonprinting", no_argument, NULL, 'e'},
+    {"show-nonprinting", no_argument, NULL, 'v'},
+    {"number", no_argument, NULL, 'n'},
+    {"squeeze-blank", no_argument, NULL, 's'},
+    {"show-tabs-nonprinting", no_argument, NULL, 't'},
+    {"show-ends", no_argument, NULL, 'E'},  // LINUX
+    {"show-tabs", no_argument, NULL, 'T'},  // LINUX
+    {NULL, 0, NULL, 0}};
 
 void exec_options(uint16_t, FILE*);
 uint16_t get_options(int, char**);

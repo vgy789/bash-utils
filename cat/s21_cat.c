@@ -1,9 +1,8 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#include "./cat_utility.h"
 #include "../common/error.h"
-#include "../common/platform.h"
+#include "./cat_utility.h"
 
 int main(int argc, char* argv[]) {
   FILE* file = NULL;

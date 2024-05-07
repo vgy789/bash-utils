@@ -6,14 +6,11 @@ all: build
 
 build: $(OUTPUT_FILE)
 
-$(OUTPUT_FILE): cat_utility.o platform.o error.o
+$(OUTPUT_FILE): cat_utility.o error.o
 	$(CC) $(CFLAGS) -o $(OUTPUT_FILE) s21_cat.c $^
 
 cat_utility.o:
 	$(CC) $(CFLAGS) -c cat_utility.c
-
-platform.o: error.o
-	$(CC) $(CFLAGS) -c ../common/platform.c
 
 error.o:
 	$(CC) $(CFLAGS) -c ../common/error.c
