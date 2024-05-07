@@ -10,21 +10,23 @@
 #include "../common/error.h"
 
 #if defined(__APPLE__) || defined(__MACH__)
-#ifndef __APPLE__
-#define __APPLE__
-#endif  // __APPLE__
 #define SYNOPSIS \
   "usage: s21_cat [-bevnst] [--number-nonblank] [--number] [file ...]"
 static char const short_options[] = "bevnst";
 
+#ifndef __APPLE__
+#define __APPLE__
+#endif  // __APPLE__
 #elif defined(__linux__) || defined(linux) || defined(__linux)
-#ifndef __linux__
-#define __linux__
-#endif  // __linux__
+#include <unistd.h>
+
 #define SYNOPSIS \
   "usage: s21_cat [-bEevnsTt] [--number-nonblank] [--number] \
 [--squeeze-blank] [file ...]"
 static char const short_options[] = "bEevnsTt";
+#ifndef __linux__
+#define __linux__
+#endif  // __linux__
 #endif
 
 enum { maxline = 4096 };
