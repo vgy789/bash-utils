@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include <regex.h>
 
 #include "../common/error.h"
 
@@ -29,18 +30,19 @@ static struct option const long_options[] = {
     {"only-matching", no_argument, NULL, 'o'},      // only_matching
     {NULL, 0, NULL, 0}};
 
-struct arguments {
-    bool match_icase;
-    bool out_invert;
-    bool count_matches;
-    bool list_files;
-    bool out_line;
-    bool filename_option;
-    bool suppress_errors;
-    bool only_matching;
-} args;
+typedef struct {
+    char* pattern;
+    bool match_icase;       /* i */
+    bool out_invert;        /* v */
+    bool count_matches;     /* c */
+    bool list_files;        /* l */
+    bool out_line;          /* n */
+    bool filename_option;   /* h */
+    bool suppress_errors;   /* s */
+    bool only_matching;     /* o */
+} arguments;
 
-void exec_options(uint16_t, FILE*);
-uint16_t get_options(int, char**);
+void exec_options(arguments, FILE*);
+arguments get_options(int, char**);
 
 #endif  // GREP_UTILITY_H

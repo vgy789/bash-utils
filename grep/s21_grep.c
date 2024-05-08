@@ -6,16 +6,18 @@
 
 int main(int argc, char* argv[]) {
   FILE* file = NULL;
-  uint16_t flags = 0;
+  arguments args;
 
-  flags = get_options(argc, argv);
+  args = get_options(argc, argv);
 
   for (int i = optind; i < argc; ++i) {
-    if ((file = fopen(argv[i], "r")) == NULL) {
+    file = fopen(argv[i], "r");
+    if (file == NULL) {
+      // завершается при первом ненайденном файле. не ищет в других при мультифайловости
       err_sys("%s: %s", argv[0], argv[i]);
     }
 
-    exec_options(flags, file);
+    exec_options(args, file);
     fclose(file);
   }
 
