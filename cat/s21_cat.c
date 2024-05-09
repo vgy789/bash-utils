@@ -16,8 +16,10 @@ int main(int argc, char* argv[]) {
   }
 
   for (int i = optind; i < argc; ++i) {
-    if ((file = fopen(argv[i], "r")) == NULL) {
-      err_sys("%s: %s", argv[0], argv[i]);
+    file = fopen(argv[i], "r");
+    if (file == NULL) {
+      err_msg("%s: %s", argv[0], argv[i]);
+      continue;
     }
 
     exec_options(flags, file);

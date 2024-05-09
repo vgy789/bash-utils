@@ -1,24 +1,35 @@
+#define _GNU_SOURCE
 #include <stdint.h>
 #include <stdio.h>
 
-#include "./grep_utility.h"
 #include "../common/error.h"
+#include "./grep_utility.h"
 
 int main(int argc, char* argv[]) {
-  FILE* file = NULL;
+  FILE* fp = NULL;
   arguments args;
 
+  // list_init()
   args = get_options(argc, argv);
-
+  if (args.pattern_contained == 0) {
+    // читаем выражения из аргумента
+    // push_data(compile(argv(optind)));
+    ++optind;
+  } else {
+    // читаем выражения из файла
+    // push_data(compile(argv(optind)));
+  }
   for (int i = optind; i < argc; ++i) {
-    file = fopen(argv[i], "r");
-    if (file == NULL) {
-      // завершается при первом ненайденном файле. не ищет в других при мультифайловости
-      err_sys("%s: %s", argv[0], argv[i]);
+    fp = fopen(argv[i], "r");
+    if (fp == NULL && args.suppress_errors == false) {
+      err_msg("%s: %s", argv[0], argv[i]);
+      continue;
     }
-
-    exec_options(args, file);
-    fclose(file);
+    // передайм лист в exec_options и запускаем поиск
+    // if (!exec_options(args, fp)) {
+    //   continue;
+    // }
+    fclose(fp);
   }
 
   exit(EXIT_SUCCESS);

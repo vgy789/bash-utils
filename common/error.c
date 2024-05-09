@@ -51,3 +51,5 @@ void err_doit(int errnoflag, int error, const char* fmt, va_list vl) {
   fputs(buf, stderr);
   fflush(NULL);
 }
+
+#undef maxline

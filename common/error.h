@@ -1,5 +1,5 @@
-#ifndef _ERROR_H
-#define _ERROR_H
+#ifndef ERROR_H
+#define ERROR_H
 
 #include <errno.h>
 #include <stdarg.h>
@@ -13,4 +13,4 @@ void err_exit(int, const char*, ...);
 void err_quit(const char*, ...);
 void err_msg(const char*, ...);
 
-#endif  // _ERROR_H
+#endif  // ERROR_H
