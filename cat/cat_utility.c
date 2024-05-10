@@ -86,14 +86,10 @@ void exec_options(uint16_t flags, FILE* fp) {
     }
     if (ch != '\n') printf("%c", ch);
     if (get_option(show_ends, flags)) {
-      exec_ends(ch);
+      if (ch == '\n') printf("$");
     }
     if (ch == '\n') printf("%c", ch);
   }
-}
-
-void exec_ends(int ch) {
-  if (ch == '\n') printf("$");
 }
 
 _Bool get_option(uint16_t option, uint16_t flags) {

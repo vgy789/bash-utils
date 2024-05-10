@@ -15,6 +15,9 @@ cat_utility.o:
 error.o:
 	$(CC) $(CFLAGS) -c ../common/error.c
 
+format:
+	clang-format --style=Google -i ./*.{c,h}
+
 clean:
 	rm -rf *.o $(OUTPUT_FILE)
 

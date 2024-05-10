@@ -2,9 +2,12 @@
 
 OK_MSG="OK"
 ERROR_MSG="ERROR"
+PROGRAM_PATH="../s21_cat"
 
-cat "../s21_cat" > "/dev/null" ||  exit 1
-
+if [ ! -f "$PROGRAM_PATH" ]; then 
+	echo "no such file $PROGRAM_PATH"
+	exit 1
+fi
 
 test_s21_cat() {
 	local option="$1"
@@ -13,7 +16,7 @@ test_s21_cat() {
 	local cat_output="a_output.txt"
     local s21_cat_output="b_output.txt"
 
-	"../s21_cat" "$option" "$file" "$file" > "$cat_output"
+	"$PROGRAM_PATH" "$option" "$file" "$file" > "$cat_output"
     cat "$option" "$file" "$file" > "$s21_cat_output"
 
 	if ! diff -q "$cat_output" "$s21_cat_output" > /dev/null; then
@@ -57,5 +60,4 @@ for file in test*; do
 		test_s21_cat -E $file
 		test_s21_cat -TE $file
 	fi
-	echo
 done
