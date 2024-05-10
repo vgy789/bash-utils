@@ -14,21 +14,23 @@
 #include "grep_utility.h"
 
 #define SYNOPSIS \
-  "usage: s21_grep [-cehilnosv] [-e pattern] [-f file] [file ...]"
+  "usage: s21_grep [-cehilnosv] [-e pattern] [-f file] [pattern] [file ...]"
 
-enum { maxline = 4096 };
+enum { maxline = 4096, match = 0 };
 
 typedef struct {
-  bool pattern_e;       /* e + */
-  bool match_icase;     /* i + */
-  bool out_invert;      /* v */
-  bool count_matches;   /* c + */
-  bool list_files;      /* l */
-  bool out_line;        /* n */
-  bool filename_option; /* h */
+  bool pattern_e;     /* e + */
+  bool match_icase;   /* i + */
+  bool out_invert;    /* v + */
+  bool count_matches; /* c + */
+  bool list_files;    /* l */
+  bool out_line;      /* n + */
+  bool filename_option;
+      /* h */  // если файлов несколько, то нумеровать, если один, то не надо
   bool suppress_errors; /* s + */
-  bool patterns_file;   /* f */
+  bool pattern_f;       /* f + */
   bool only_matching;   /* o */
+  bool is_file;
 } arguments;
 
 static char const short_options[] = "ce:f:hilnosv";
@@ -54,5 +56,8 @@ struct grep_settings {
 void regex_run(FILE* fp, struct grep_settings grep_sett);
 struct grep_settings parse_grep_options(int argc, char* argv[]);
 regex_t compile_expression(const char* pattern, arguments args);
+
+void simple_grep(struct grep_settings grep_sett);
+bool file_readopen(FILE** fp, char* path, arguments args);
 
 #endif  // GREP_UTILITY_H
