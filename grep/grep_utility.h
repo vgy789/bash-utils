@@ -10,14 +10,28 @@
 #include <string.h>
 
 #include "../common/error.h"
+#include "./regex_list.h"
 #include "grep_utility.h"
 
 #define SYNOPSIS \
   "usage: s21_grep [-cehilnosv] [-e pattern] [-f file] [file ...]"
 
-static char const short_options[] = "ce:f:hilnosv";
-
 enum { maxline = 4096 };
+
+typedef struct {
+  bool pattern_e;       /* e + */
+  bool match_icase;     /* i + */
+  bool out_invert;      /* v */
+  bool count_matches;   /* c + */
+  bool list_files;      /* l */
+  bool out_line;        /* n */
+  bool filename_option; /* h */
+  bool suppress_errors; /* s + */
+  bool patterns_file;   /* f */
+  bool only_matching;   /* o */
+} arguments;
+
+static char const short_options[] = "ce:f:hilnosv";
 
 static struct option const long_options[] = {
     {"regexp", required_argument, NULL, 'e'},
@@ -32,20 +46,13 @@ static struct option const long_options[] = {
     {"only-matching", no_argument, NULL, 'o'},       // only_matching
     {NULL, 0, NULL, 0}};
 
-typedef struct {
-  bool pattern_contained; /* e */
-  bool match_icase;       /* i + */
-  bool out_invert;        /* v + */
-  bool count_matches;     /* c + */
-  bool list_files;        /* l */
-  bool out_line;          /* n */
-  bool filename_option;   /* h */
-  bool suppress_errors;   /* s + */
-  // bool filename;         /* f */
-  bool only_matching; /* o */
-} arguments;
+struct grep_settings {
+  struct array_list* patterns;
+  arguments options;
+};
 
-bool exec_options(arguments, FILE*);
-arguments get_options(int, char**);
+void regex_run(FILE* fp, struct grep_settings grep_sett);
+struct grep_settings parse_grep_options(int argc, char* argv[]);
+regex_t compile_expression(const char* pattern, arguments args);
 
 #endif  // GREP_UTILITY_H
