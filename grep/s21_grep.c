@@ -6,15 +6,17 @@
 #include "./regex_list.h"
 
 int main(int argc, char* argv[]) {
-  FILE* fp = NULL;
   struct grep_settings grep_sett = {0};
   grep_sett = parse_grep_options(argc, argv);
 
-  const bool nofile_haspattern =
-      grep_sett.options.is_file == false &&
+  const bool has_pattern =
       (grep_sett.options.pattern_e || grep_sett.options.pattern_f);
-  if (nofile_haspattern) {
+  const bool file_exists = grep_sett.options.file_count;
+  if (has_pattern && !file_exists) {
     simple_grep(grep_sett);
+  }
+  if (!has_pattern && !file_exists) {
+    err_quit(SYNOPSIS);
   }
 
   for (int i = optind; i < argc; ++i) {
@@ -24,7 +26,7 @@ int main(int argc, char* argv[]) {
       continue;
     }
 
-    regex_run(fp, grep_sett);
+    regex_run(fp, path, grep_sett);
     fclose(fp);
   }
 

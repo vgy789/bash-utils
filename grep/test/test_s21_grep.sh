@@ -1,3 +1,13 @@
+grep hello data1.txt
+grep goodbye data1.txt
+grep hello data1.txt data2.txt data3.txt
+grep -e hello -e a -e b data1.txt
+grep -e hello -e a -e b data1.txt data2.txt data3.txt
+grep -f patterns1.txt data1.txt
+grep -f patterns1.txt data2.txt
+grep -f patterns1.txt -f patterns2.txt data3.txt
+
+
 #!/bin/bash
 
 OK_MSG="OK"
@@ -16,8 +26,8 @@ test_s21_grep() {
 	local grep_output="a_output.txt"
     local s21_grep_output="b_output.txt"
 
-#	"$PROGRAM_PATH" "$option" "$file" "$file" > "$grep_output"
-#    grep "$option" "$file" "$file" > "$s21_grep_output"
+	"$PROGRAM_PATH" "$option" "$file" "$file" > "$grep_output"
+    grep "$option" "$file" "$file" > "$s21_grep_output"
 
 	if ! diff -q "$grep_output" "$s21_grep_output" > /dev/null; then
 		status="$ERROR_MSG"
@@ -38,14 +48,14 @@ for file in test*; do
 	echo "[$file]"
 	grep $file > "/dev/null" || continue
 
-#	test_s21_grep -b $file
-#	test_s21_grep -v $file
-#	test_s21_grep -e $file
-#	test_s21_grep -n $file
-#	test_s21_grep -s $file
-#	test_s21_grep -t $file
-#	test_s21_grep -bn $file
-#	test_s21_grep -nb $file
-#	test_s21_grep -te $file
-#	test_s21_grep -bs $file
+	test_s21_grep -b
+	test_s21_grep -v
+	test_s21_grep -e
+	test_s21_grep -n
+	test_s21_grep -s
+	test_s21_grep -t
+	test_s21_grep -bn
+	test_s21_grep -nb
+	test_s21_grep -te
+	test_s21_grep -bs
 done

@@ -47,7 +47,7 @@ struct grep_settings parse_grep_options(int argc, char* argv[]) {
         args.only_matching = true;
         break;
       case '?':
-        err_sys(SYNOPSIS);
+        err_quit(SYNOPSIS);
     }
   }
 
@@ -64,7 +64,6 @@ struct grep_settings parse_grep_options(int argc, char* argv[]) {
       if (opt == 'f') {
         // grep [-t file] [file?]
         FILE* fp = NULL;
-        // TODO: проверь на вывод ошибки и флаг -s
         if (!file_readopen(&fp, optarg, args)) {
           exit(1);
         }
@@ -93,7 +92,14 @@ struct grep_settings parse_grep_options(int argc, char* argv[]) {
     args.pattern_e = true;
   }
 
-  args.is_file = (optind < argc);
+  if (optind + 1 < argc) {
+    args.file_count = MULTIPLE_FILE;
+  } else if (optind < argc) {
+    args.file_count = ONE_FILE;
+  } else {
+    args.file_count = NO_FILE;
+  }
+
   grep.options = args;
   return grep;
 }
@@ -113,43 +119,79 @@ regex_t compile_expression(const char* pattern, arguments args) {
   return regex;
 }
 
-void regex_run(FILE* fp, struct grep_settings grep_sett) {
+void regex_row_search(char* row, struct grep_settings grep_sett, char* filepath,
+                      size_t* count_match, size_t* row_number) {
   int reti = 0;
-  size_t count_match = 0;
-  arguments args = grep_sett.options;
   struct array_list* list = grep_sett.patterns;
-  const uint16_t count_patterns = list->len;
+  arguments args = grep_sett.options;
+  regmatch_t match;
 
-  size_t row_number = 0;
-  char* row = NULL;
-  size_t len = 0;
-  while (getline(&row, &len, fp) != EOF) {
-    for (int i = 0; i < count_patterns; ++i) {
-      ++row_number;
-      reti = regexec(&list->regex[i], row, 0, NULL, 0);
-      if (args.out_invert == false ? reti == match : reti != match) {
-        ++count_match;
-        if (args.count_matches == false) {
-          if (args.out_line) {
-            printf("%d:", row_number);
-          }
-          printf("%s", row);
-        }
+  for (int i = 0; i < list->len; ++i) {
+    *row_number += 1;
+    reti = regexec(&list->regex[i], row, grep_sett.options.only_matching,
+                   &match, 0);
+
+    if (args.out_invert == (reti ^ 0)) {
+      *count_match += 1;
+      if (args.count_matches || grep_sett.options.list_files) {
+        continue;
+      }
+      if (args.file_count == MULTIPLE_FILE && args.filename_option == false) {
+        printf("%s:", filepath);
+      }
+      if (args.out_line) {
+        printf("%d:", *row_number);
+      }
+      if (grep_sett.options.only_matching) {
+        printf("%.*s\n", (int)(match.rm_eo - match.rm_so), &row[match.rm_so]);
+      } else {
+        printf("%s", row);
       }
     }
   }
-  free(row);
-  if (args.count_matches) printf("%d", count_match);
 }
 
-void process_file(arguments arg, char* path, regex_t regex) {}
+void regex_run(FILE* fp, char* filepath, struct grep_settings sett) {
+  char* row = NULL;
+  size_t len = 0;
+  size_t n;
+  size_t count_match = 0;
+  size_t row_number = 0;
+
+  char end_char;
+  while (n = getline(&row, &len, fp) != EOF) {
+    regex_row_search(row, sett, filepath, &count_match, &row_number);
+    end_char = row[n - 1];
+  }
+
+  if (sett.options.list_files) {
+    printf("%s", filepath);
+  }
+  if (sett.options.count_matches) {
+    if (sett.options.list_files == false &&
+        sett.options.file_count == MULTIPLE_FILE &&
+        sett.options.filename_option == false) {
+      printf("%s", filepath);
+    }
+    if (sett.options.filename_option == false &&
+        (sett.options.file_count == MULTIPLE_FILE ||
+         (sett.options.file_count == ONE_FILE && sett.options.list_files))) {
+      printf(":");
+    }
+    printf("%d", count_match);
+  }
+  if (end_char != '\n') {
+    printf("\n");
+  }
+  if (row) free(row);
+}
 
 void simple_grep(struct grep_settings grep_sett) {
   int n = 0;
   int buf[maxline] = {'\0'};
 
   while ((n = read(STDIN_FILENO, buf, maxline)) != 0) {
-    regex_run(stdin, grep_sett);
+    regex_run(stdin, "", grep_sett);
     if (write(STDOUT_FILENO, buf, n) != n) {
       err_sys("input error");
     }
