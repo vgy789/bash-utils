@@ -2,7 +2,9 @@
 
 OK_MSG="OK"
 ERROR_MSG="ERROR"
-PROGRAM_PATH="../s21_cat"
+PROGRAM_PATH="./s21_cat"
+status="$OK_MSG"
+TEST_DIR=$1
 
 if [ ! -f "$PROGRAM_PATH" ]; then 
 	echo "no such file $PROGRAM_PATH"
@@ -12,7 +14,6 @@ fi
 test_s21_cat() {
 	local option="$1"
 	local file="$2"
-	local status="$OK_MSG"
 	local cat_output="a_output.txt"
     local s21_cat_output="b_output.txt"
 
@@ -28,10 +29,11 @@ test_s21_cat() {
 	rm "$cat_output" "$s21_cat_output"
 
 	if [ "$status" == "$OK_MSG" ]; then
-		echo -e "$status" "$option"
-	else
-		echo -e "$status" "$option"
-	fi
+        ((successful_tests++))
+    else
+        ((failed_tests++))
+    fi
+	echo -e "$status" "$option"
 }
 
 case "$(uname -s)" in
@@ -39,7 +41,10 @@ case "$(uname -s)" in
 	Darwin*)    MACHINE=Mac
 esac
 
-for file in test*; do
+successful_tests=0
+failed_tests=0
+
+for file in "$TEST_DIR"/test*; do
 	echo "[$file]"
 	cat $file > "/dev/null" || continue
 	
@@ -61,3 +66,6 @@ for file in test*; do
 		test_s21_cat -TE $file
 	fi
 done
+
+echo "Total successful tests: $successful_tests"
+echo "Total failed tests: $failed_tests"
