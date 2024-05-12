@@ -10,7 +10,7 @@ int main(int argc, char* argv[]) {
 
   flags = get_options(argc, argv);
 
-  if (get_option(is_filename, flags) == 0) {
+  if (get_option(is_file, flags) == 0) {
     simple_cat(flags);
     exit(EXIT_SUCCESS);
   }

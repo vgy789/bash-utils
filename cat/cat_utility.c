@@ -39,7 +39,7 @@ uint16_t get_options(int argc, char* argv[]) {
   }
 
   if (optind < argc) {
-    flags = set_option(is_filename, flags, 1);
+    flags = set_option(is_file, flags, 1);
   }
   return flags;
 }

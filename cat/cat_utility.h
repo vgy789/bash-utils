@@ -30,7 +30,7 @@ enum flag {
   squeeze_blank = 1 << 4,    /* -s */
   show_ends = 1 << 5,        /* -E */
   show_tabs = 1 << 6,        /* -T */
-  is_filename = 1 << 10,
+  is_file = 1 << 10,
 };
 
 static struct option const long_options[] = {
