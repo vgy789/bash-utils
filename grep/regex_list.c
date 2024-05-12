@@ -9,8 +9,8 @@ struct array_list* init_list() {
 }
 
 void push_data(struct array_list* list, regex_t regex_data) {
-  u_int16_t length = list->len;
-  u_int16_t capacity = list->cap;
+  uint16_t length = list->len;
+  uint16_t capacity = list->cap;
 
   ++length;
   if (length > capacity) {
