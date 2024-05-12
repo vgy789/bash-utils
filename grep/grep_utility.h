@@ -25,19 +25,18 @@ enum { maxline = 4096 };
 enum { NO_FILE, ONE_FILE, MULTIPLE_FILE };
 
 typedef struct {
-  bool pattern_e;     /* e */
-  bool match_icase;   /* i */
-  bool out_invert;    /* v */
-  bool count_matches; /* c */
-  bool list_files;    /* l  */
-  bool out_line;      /* n */
-  bool filename_option;
-  /* h */  // если файлов несколько, то нумеровать, если один, то не надо
+  bool pattern_e;       /* e */
+  bool match_icase;     /* i */
+  bool out_invert;      /* v */
+  bool count_matches;   /* c */
+  bool list_files;      /* l */
+  bool out_line;        /* n */
+  bool filename_option; /* h */
   bool suppress_errors; /* s */
   bool pattern_f;       /* f */
   bool only_matching;   /* o */
 
-  u_int8_t file_count;
+  int file_count;
 } arguments;
 
 static char const short_options[] = "ce:f:hilnosv";
