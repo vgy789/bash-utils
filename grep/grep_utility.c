@@ -103,7 +103,11 @@ struct grep_settings parse_grep_options(int argc, char* argv[]) {
 regex_t compile_expression(const char* pattern, arguments args) {
   int reti = 0;
   char msgbuf[128] = {'\0'};
-  uint16_t cflags = REG_EXTENDED | args.match_icase ? REG_ICASE : 0;
+
+  uint16_t cflags = 0;
+  if (args.match_icase) {
+    cflags |= REG_ICASE;
+  }
   regex_t regex;
 
   reti = regcomp(&regex, pattern, cflags);
