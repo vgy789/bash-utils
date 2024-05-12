@@ -1,7 +1,7 @@
 #define _GNU_SOURCE
 
 #include "./grep_utility.h"
-
+#include <string.h>
 #include "./regex_list.h"
 
 struct grep_settings parse_grep_options(int argc, char* argv[]) {
@@ -128,9 +128,8 @@ void regex_row_search(char* row, struct grep_settings grep_sett, char* filepath,
 
   for (int i = 0; i < list->len; ++i) {
     *row_number += 1;
-    reti = regexec(&list->regex[i], row, grep_sett.options.only_matching,
-                   &match, 0);
-
+    reti = regexec(&list->regex[i], row, 0, NULL, 0);
+    
     if (args.out_invert == (reti ^ 0)) {
       *count_match += 1;
       if (args.count_matches || grep_sett.options.list_files) {
@@ -142,12 +141,31 @@ void regex_row_search(char* row, struct grep_settings grep_sett, char* filepath,
       if (args.out_line) {
         printf("%d:", *row_number);
       }
-      if (grep_sett.options.only_matching) {
-        printf("%.*s\n", (int)(match.rm_eo - match.rm_so), &row[match.rm_so]);
-      } else {
-        printf("%s", row);
-      }
+      printf("%s", row);
     }
+  }
+}
+
+void regex_row_search_with_o(char* row, struct grep_settings grep_sett, char* filepath,
+                      size_t* count_match, size_t* row_number, size_t n) {
+  int reti = 0;
+  struct array_list* list = grep_sett.patterns;
+  arguments args = grep_sett.options;
+  regmatch_t match;
+
+  for (int i = 0; i < list->len; ++i) {
+    *row_number += 1;
+    do {
+      reti = regexec(&list->regex[i], row, grep_sett.options.only_matching,
+                    &match, 0);
+
+      if (args.out_invert == (reti ^ 0)) {
+        *count_match += 1;
+        printf("%d\n", match);
+        //printf("%.*s\n", (int)(match.rm_eo - match.rm_so), &row[match.rm_so]);
+        //strncpy(&row[match.rm_eo], &row[match.rm_eo], n -);
+      }
+    } while(args.out_invert == (reti ^ 0));
   }
 }
 
@@ -160,7 +178,11 @@ void regex_run(FILE* fp, char* filepath, struct grep_settings sett) {
 
   char end_char;
   while (n = getline(&row, &len, fp) != EOF) {
-    regex_row_search(row, sett, filepath, &count_match, &row_number);
+    if (sett.options.only_matching) {
+      regex_row_search_with_o(row, sett, filepath, &count_match, &row_number, n);
+    } else {
+      regex_row_search(row, sett, filepath, &count_match, &row_number);
+    }
     end_char = row[n - 1];
   }
 

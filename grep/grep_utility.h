@@ -55,6 +55,8 @@ struct grep_settings {
   arguments options;
 };
 
+void regex_row_search_with_o(char* row, struct grep_settings grep_sett, char* filepath,
+                      size_t* count_match, size_t* row_number, size_t n);
 void regex_run(FILE* fp, char* path, struct grep_settings grep_sett);
 struct grep_settings parse_grep_options(int argc, char* argv[]);
 regex_t compile_expression(const char* pattern, arguments args);
