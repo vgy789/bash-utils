@@ -1,10 +1,12 @@
 #!/bin/bash
 
 OK_MSG="OK"
-ERROR_MSG="ERROR"
+ERROR_MSG="FAIL"
 PROGRAM_PATH="./s21_cat"
-status="$OK_MSG"
 TEST_DIR=$1
+status="$OK_MSG"
+successful_tests=0
+failed_tests=0
 
 if [ ! -f "$PROGRAM_PATH" ]; then 
 	echo "no such file $PROGRAM_PATH"
@@ -16,7 +18,6 @@ test_s21_cat() {
 	local file="$2"
 	local cat_output="cat_output.txt"
     local s21_cat_output="s21_cat_output.txt"
-	status="$ERROR_MSG"
 
 	"$PROGRAM_PATH" "$option" "$file" "$file" > "$cat_output"
     cat "$option" "$file" "$file" > "$s21_cat_output"
@@ -41,9 +42,6 @@ case "$(uname -s)" in
 	Linux*)     MACHINE=Linux;;
 	Darwin*)    MACHINE=Mac
 esac
-
-successful_tests=0
-failed_tests=0
 
 for file in "$TEST_DIR"/test[0-9]*; do
 		echo "[$file]"

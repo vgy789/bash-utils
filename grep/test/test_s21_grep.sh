@@ -3,8 +3,8 @@
 OK_MSG="OK"
 ERROR_MSG="FAIL"
 PROGRAM_PATH="./s21_grep"
-status="$OK_MSG"
 TEST_DIR=$1
+status="$OK_MSG"
 successful_tests=0
 failed_tests=0
 
@@ -18,7 +18,6 @@ test_s21_grep() {
 	local data="$2"
 	local grep_output="grep_output.txt"
     local s21_grep_output="s21_grep_output.txt"
-	
 
 	"$PROGRAM_PATH" "$option" "$data" > "$grep_output"
     grep "$option" "$data" > "$s21_grep_output"
