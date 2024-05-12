@@ -13,12 +13,12 @@ fi
 
 test_s21_grep() {
 	local option="$1"
-	local file="$2"
+	local data="$2"
 	local grep_output="grep_output.txt"
     local s21_grep_output="s21_grep_output.txt"
 
-	"$PROGRAM_PATH" "$option" "$file" "$file" > "$grep_output"
-    grep "$option" "$file" "$file" > "$s21_grep_output"
+	"$PROGRAM_PATH" "$option" "$data" > "$grep_output"
+    grep "$option" "$data" > "$s21_grep_output"
 
 	if ! diff -q "$grep_output" "$s21_grep_output" > /dev/null; then
 		status="$ERROR_MSG"
@@ -36,16 +36,28 @@ test_s21_grep() {
 	echo -e "$status" "$option"
 }
 
-for file in test*; do
-	echo "[$file]"
-	cat $file > "/dev/null" || continue
+for data in "$TEST_DIR"/data[0-9]*; do
+	echo "[$data]"
+	cat $data > "/dev/null" || continue
+
+	for template in `echo 'hello grep 42 b n adfasdfads "a*c|b*c" "[0-9]\+"' | xargs`; do
+		test_s21_grep "-e $template" $data
+		test_s21_grep "-e $template -c" $data
+		test_s21_grep "$template" $data
+
+		for flag in `echo '-c -v -i -l -n -h -s -o -oi -ov -ov -ol -on -oh -os' | xargs`; do
+			test_s21_grep "-e $template $flag" $data
+		done
+
+#		for patterns in "$TEST_DIR"/patterns[0-9]*; do
+#		echo
+#			test_s21_grep "-f $patterns" $data
+#		done
+	done
+	test_s21_grep "'[0-9]\+'" $data
+	test_s21_grep "-e hello -e a -e b -e dafsdf -e" $data
+	echo
 done
 
-grep hello data1.txt
-grep goodbye data1.txt
-grep hello data1.txt data2.txt data3.txt
-grep -e hello -e a -e b data1.txt
-grep -e hello -e a -e b data1.txt data2.txt data3.txt
-grep -f patterns1.txt data1.txt
-grep -f patterns1.txt data2.txt
-grep -f patterns1.txt -f patterns2.txt data3.txt
+echo "Total successful tests: $successful_tests"
+echo "Total failed tests: $failed_tests"
