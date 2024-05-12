@@ -16,6 +16,7 @@ test_s21_cat() {
 	local file="$2"
 	local cat_output="cat_output.txt"
     local s21_cat_output="s21_cat_output.txt"
+	status="$ERROR_MSG"
 
 	"$PROGRAM_PATH" "$option" "$file" "$file" > "$cat_output"
     cat "$option" "$file" "$file" > "$s21_cat_output"
@@ -44,26 +45,17 @@ esac
 successful_tests=0
 failed_tests=0
 
-for file in "$TEST_DIR"/test*; do
-	echo "[$file]"
-	cat $file > "/dev/null" || continue
-	
-	test_s21_cat -b $file
-	test_s21_cat -v $file
-	test_s21_cat -e $file
-	test_s21_cat -n $file
-	test_s21_cat -s $file
-	test_s21_cat -t $file
-	test_s21_cat -bn $file
-	test_s21_cat -nb $file
-	test_s21_cat -te $file
-	test_s21_cat -bs $file
+for file in "$TEST_DIR"/test[0-9]*; do
+		echo "[$file]"
+		cat $file > "/dev/null" || continue
+	for flag in `echo '-b -v -e -n -s -t -bn -nb -te -bs' | xargs`; do
+		test_s21_cat "$flag" "$file"
+	done
 
 	if [[ $MACHINE == "Linux" ]]; then 
-		test_s21_cat --number-nonblank $file
-		test_s21_cat -T $file
-		test_s21_cat -E $file
-		test_s21_cat -TE $file
+		for flag in `echo '--number-nonblank -T -E -TE --number --squeeze-blank' | xargs`; do
+			test_s21_cat "$flag" "$file"
+		done
 	fi
 done
 
