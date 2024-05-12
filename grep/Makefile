@@ -1,5 +1,5 @@
 CC=gcc
-FLAGS=-Wall -Werror -Wextra -std=c17 -std=c11 -pedantic
+CFLAGS=-Wall -Werror -Wextra -std=c17 -std=c11 -pedantic
 OUTPUT_FILE=s21_grep
 
 all: build

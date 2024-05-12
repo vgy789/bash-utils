@@ -143,7 +143,7 @@ void regex_row_search(const char* row, struct grep_settings grep_sett,
 
 void regex_row_search_with_o(const char* row, struct grep_settings grep_sett,
                              const char* filepath, size_t* count_match,
-                             size_t* row_number, size_t n) {
+                             size_t* row_number) {
   int reti = 0;
   struct array_list* list = grep_sett.patterns;
   arguments args = grep_sett.options;
@@ -160,7 +160,7 @@ void regex_row_search_with_o(const char* row, struct grep_settings grep_sett,
 
       len = pmatch[0].rm_eo - pmatch[0].rm_so;
       if (!(args.count_matches || grep_sett.options.list_files))
-        printf("%.*s\n", len, row + pmatch[0].rm_so);
+        printf("%.*s\n", (int)len, row + pmatch[0].rm_so);
 
       row += pmatch[0].rm_eo;
 
@@ -184,7 +184,7 @@ void regex_row_search_with_o(const char* row, struct grep_settings grep_sett,
 void regex_run(FILE* fp, char* filepath, struct grep_settings sett) {
   char* row = NULL;
   size_t len = 0;
-  size_t n;
+  int n;
   size_t count_match = 0;
   size_t row_number = 0;
 
@@ -194,8 +194,7 @@ void regex_run(FILE* fp, char* filepath, struct grep_settings sett) {
     const bool o_flag =
         (sett.options.only_matching && !sett.options.out_invert);
     if (o_flag) {
-      regex_row_search_with_o(row, sett, filepath, &count_match, &row_number,
-                              n);
+      regex_row_search_with_o(row, sett, filepath, &count_match, &row_number);
     } else {
       regex_row_search(row, sett, filepath, &count_match, &row_number);
     }
