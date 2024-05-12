@@ -1,7 +1,11 @@
+#if defined(__linux__)
 #define _GNU_SOURCE
+#include <unistd.h>
+#endif
+
+#include <string.h>
 
 #include "./grep_utility.h"
-#include <string.h>
 #include "./regex_list.h"
 
 struct grep_settings parse_grep_options(int argc, char* argv[]) {
@@ -119,19 +123,59 @@ regex_t compile_expression(const char* pattern, arguments args) {
   return regex;
 }
 
-void regex_row_search(char* row, struct grep_settings grep_sett, char* filepath,
-                      size_t* count_match, size_t* row_number) {
+void regex_row_search(const char* row, struct grep_settings grep_sett,
+                      const char* filepath, size_t* count_match,
+                      size_t* row_number) {
   int reti = 0;
   struct array_list* list = grep_sett.patterns;
   arguments args = grep_sett.options;
-  regmatch_t match;
 
   for (int i = 0; i < list->len; ++i) {
     *row_number += 1;
     reti = regexec(&list->regex[i], row, 0, NULL, 0);
-    
-    if (args.out_invert == (reti ^ 0)) {
-      *count_match += 1;
+
+    if (args.out_invert != (reti ^ 0)) continue;
+    *count_match += 1;
+    if (args.count_matches || grep_sett.options.list_files) {
+      continue;
+    }
+    if (args.file_count == MULTIPLE_FILE && args.filename_option == false) {
+      printf("%s:", filepath);
+    }
+    if (args.out_line) {
+      printf("%d:", *row_number);
+    }
+    printf("%s\n", row);
+  }
+}
+
+void regex_row_search_with_o(const char* row, struct grep_settings grep_sett,
+                             const char* filepath, size_t* count_match,
+                             size_t* row_number, size_t n) {
+  int reti = 0;
+  struct array_list* list = grep_sett.patterns;
+  arguments args = grep_sett.options;
+  regmatch_t pmatch[1];
+  regoff_t len;
+
+  for (size_t i = 0; i < list->len; ++i) {
+    bool row_flag = false;
+    *row_number += 1;
+
+    while (true) {
+      reti = regexec(&list->regex[i], row, 1, pmatch, 0);
+      if (args.out_invert != (reti ^ 0)) break;
+
+      len = pmatch[0].rm_eo - pmatch[0].rm_so;
+      if (!(args.count_matches || grep_sett.options.list_files))
+        printf("%.*s\n", len, row + pmatch[0].rm_so);
+
+      row += pmatch[0].rm_eo;
+
+      if (row_flag == false) {
+        row_flag = true;
+        *count_match += 1;
+      }
       if (args.count_matches || grep_sett.options.list_files) {
         continue;
       }
@@ -141,31 +185,7 @@ void regex_row_search(char* row, struct grep_settings grep_sett, char* filepath,
       if (args.out_line) {
         printf("%d:", *row_number);
       }
-      printf("%s", row);
     }
-  }
-}
-
-void regex_row_search_with_o(char* row, struct grep_settings grep_sett, char* filepath,
-                      size_t* count_match, size_t* row_number, size_t n) {
-  int reti = 0;
-  struct array_list* list = grep_sett.patterns;
-  arguments args = grep_sett.options;
-  regmatch_t match;
-
-  for (int i = 0; i < list->len; ++i) {
-    *row_number += 1;
-    do {
-      reti = regexec(&list->regex[i], row, grep_sett.options.only_matching,
-                    &match, 0);
-
-      if (args.out_invert == (reti ^ 0)) {
-        *count_match += 1;
-        printf("%d\n", match);
-        //printf("%.*s\n", (int)(match.rm_eo - match.rm_so), &row[match.rm_so]);
-        //strncpy(&row[match.rm_eo], &row[match.rm_eo], n -);
-      }
-    } while(args.out_invert == (reti ^ 0));
   }
 }
 
@@ -176,34 +196,37 @@ void regex_run(FILE* fp, char* filepath, struct grep_settings sett) {
   size_t count_match = 0;
   size_t row_number = 0;
 
-  char end_char;
-  while (n = getline(&row, &len, fp) != EOF) {
-    if (sett.options.only_matching) {
-      regex_row_search_with_o(row, sett, filepath, &count_match, &row_number, n);
+  while ((n = getline(&row, &len, fp)) != EOF) {
+    if (row[n - 1] == '\n') row[n - 1] = '\0';
+
+    const bool o_flag =
+        (sett.options.only_matching && !sett.options.out_invert);
+    if (o_flag) {
+      regex_row_search_with_o(row, sett, filepath, &count_match, &row_number,
+                              n);
     } else {
       regex_row_search(row, sett, filepath, &count_match, &row_number);
     }
-    end_char = row[n - 1];
   }
 
   if (sett.options.list_files) {
     printf("%s", filepath);
+    if (!sett.options.count_matches) {
+      putchar('\n');
+    }
   }
+
   if (sett.options.count_matches) {
-    if (sett.options.list_files == false &&
-        sett.options.file_count == MULTIPLE_FILE &&
-        sett.options.filename_option == false) {
+    if (!sett.options.list_files && sett.options.file_count == MULTIPLE_FILE &&
+        !sett.options.filename_option) {
       printf("%s", filepath);
     }
-    if (sett.options.filename_option == false &&
+    if (!sett.options.filename_option &&
         (sett.options.file_count == MULTIPLE_FILE ||
          (sett.options.file_count == ONE_FILE && sett.options.list_files))) {
       printf(":");
     }
-    printf("%d", count_match);
-  }
-  if (end_char != '\n') {
-    printf("\n");
+    printf("%d\n", count_match);
   }
   if (row) free(row);
 }

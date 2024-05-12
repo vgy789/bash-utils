@@ -12,6 +12,7 @@ int main(int argc, char* argv[]) {
   const bool has_pattern =
       (grep_sett.options.pattern_e || grep_sett.options.pattern_f);
   const bool file_exists = grep_sett.options.file_count;
+
   if (has_pattern && !file_exists) {
     simple_grep(grep_sett);
   }
@@ -31,5 +32,5 @@ int main(int argc, char* argv[]) {
   }
 
   free_list(grep_sett.patterns);
-  // exit(EXIT_SUCCESS);
+  exit(EXIT_SUCCESS);
 }
