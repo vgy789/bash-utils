@@ -1,6 +1,11 @@
 #ifndef GREP_UTILITY_H
 #define GREP_UTILITY_H
 
+#if defined(__linux__)
+#define _GNU_SOURCE
+#include <unistd.h>
+#endif
+
 #include <getopt.h>
 #include <regex.h>
 #include <stdbool.h>

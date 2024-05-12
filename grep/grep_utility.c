@@ -1,12 +1,4 @@
-#if defined(__linux__)
-#define _GNU_SOURCE
-#include <unistd.h>
-#endif
-
-#include <string.h>
-
 #include "./grep_utility.h"
-#include "./regex_list.h"
 
 struct grep_settings parse_grep_options(int argc, char* argv[]) {
   struct grep_settings grep = {0};
@@ -111,7 +103,7 @@ struct grep_settings parse_grep_options(int argc, char* argv[]) {
 regex_t compile_expression(const char* pattern, arguments args) {
   int reti = 0;
   char msgbuf[128] = {'\0'};
-  uint16_t cflags = REG_BASIC | (args.match_icase ? REG_ICASE : 0);
+  uint16_t cflags = args.match_icase ? REG_ICASE : 0;
   regex_t regex;
 
   reti = regcomp(&regex, pattern, cflags);
@@ -143,7 +135,7 @@ void regex_row_search(const char* row, struct grep_settings grep_sett,
       printf("%s:", filepath);
     }
     if (args.out_line) {
-      printf("%d:", *row_number);
+      printf("%ld:", *row_number);
     }
     printf("%s\n", row);
   }
@@ -183,7 +175,7 @@ void regex_row_search_with_o(const char* row, struct grep_settings grep_sett,
         printf("%s:", filepath);
       }
       if (args.out_line) {
-        printf("%d:", *row_number);
+        printf("%ld:", *row_number);
       }
     }
   }
@@ -226,7 +218,7 @@ void regex_run(FILE* fp, char* filepath, struct grep_settings sett) {
          (sett.options.file_count == ONE_FILE && sett.options.list_files))) {
       printf(":");
     }
-    printf("%d\n", count_match);
+    printf("%ld\n", count_match);
   }
   if (row) free(row);
 }
