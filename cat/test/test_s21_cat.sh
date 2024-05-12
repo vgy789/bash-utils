@@ -14,8 +14,8 @@ fi
 test_s21_cat() {
 	local option="$1"
 	local file="$2"
-	local cat_output="a_output.txt"
-    local s21_cat_output="b_output.txt"
+	local cat_output="cat_output.txt"
+    local s21_cat_output="s21_cat_output.txt"
 
 	"$PROGRAM_PATH" "$option" "$file" "$file" > "$cat_output"
     cat "$option" "$file" "$file" > "$s21_cat_output"

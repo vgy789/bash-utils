@@ -1,6 +1,7 @@
 CC=gcc
-CFLAGS=-Wall -Werror -Wextra -std=c17 -std=c11 -pedantic
+CFLAGS=-Wall -Werror -Wextra -std=c11 -std=c17 -pedantic
 OUTPUT_FILE=s21_grep
+TEST_DIR=./test
 
 all: build
 
@@ -18,10 +19,14 @@ regex_list.o:
 error.o:
 	$(CC) $(CFLAGS) -c ../common/error.c
 
+test: rebuild
+	cp $(OUTPUT_FILE) $(TEST_DIR)
+	bash $(TEST_DIR)/test_s21_grep.sh $(TEST_DIR)
+
 format:
 	clang-format --style=Google -i ./*.{c,h}
 
 clean:
-	rm -rf *.o $(OUTPUT_FILE)
+	rm -rf *.o $(OUTPUT_FILE) $(TEST_DIR)/$(OUTPUT_FILE)
 
 rebuild: clean all

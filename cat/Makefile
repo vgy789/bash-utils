@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-Wall -Werror -Wextra -std=c11 -pedantic
+CFLAGS=-Wall -Werror -Wextra -std=c11 -std=c17 -pedantic
 OUTPUT_FILE=s21_cat
 TEST_DIR=./test
 
@@ -17,7 +17,7 @@ error.o:
 	$(CC) $(CFLAGS) -c ../common/error.c
 
 test: rebuild
-	cp s21_cat test/
+	cp $(OUTPUT_FILE) $(TEST_DIR)
 	bash $(TEST_DIR)/test_s21_cat.sh $(TEST_DIR)
 
 format:
