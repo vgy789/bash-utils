@@ -19,8 +19,9 @@ test_s21_cat() {
 	local cat_output="cat_output.txt"
     local s21_cat_output="s21_cat_output.txt"
 
-	"$PROGRAM_PATH" "$option" "$file" "$file" > "$cat_output"
-    cat "$option" "$file" "$file" > "$s21_cat_output"
+	# valgrind --tool=memcheck --leak-check=yes --track-origins=yes -s
+	"$PROGRAM_PATH" "$option" "$file" > "$cat_output"
+    cat "$option" "$file" > "$s21_cat_output"
 
 	if ! diff -q "$cat_output" "$s21_cat_output" > /dev/null; then
 		status="$ERROR_MSG"
