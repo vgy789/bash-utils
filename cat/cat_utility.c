@@ -1,4 +1,4 @@
-#include "./cat_utility.h"
+#include "cat_utility.h"
 
 uint16_t get_options(int argc, char* argv[]) {
   int opt;
@@ -34,7 +34,7 @@ uint16_t get_options(int argc, char* argv[]) {
         flags = set_option(show_tabs, flags, 1);
         break;
       case '?':
-        err_sys(SYNOPSIS);
+        err_quit(SYNOPSIS);
     }
   }
 
@@ -45,13 +45,7 @@ uint16_t get_options(int argc, char* argv[]) {
 }
 
 void exec_options(uint16_t flags, FILE* fp) {
-  _Bool flag_numreset;
-#ifdef __APPLE__
-  flag_numreset = 1;
-#elif defined(__linux__)
-  flag_numreset = 0;
-#endif
-
+  _Bool flag_numreset = 1;
   int ch;
 
   while ((ch = fgetc(fp)) != EOF) {
@@ -84,11 +78,17 @@ void exec_options(uint16_t flags, FILE* fp) {
         continue;
       }
     }
-    if (ch != '\n') printf("%c", ch);
-    if (get_option(show_ends, flags)) {
-      if (ch == '\n') printf("$");
+    if (ch != '\n') {
+      printf("%c", ch);
     }
-    if (ch == '\n') printf("%c", ch);
+    if (get_option(show_ends, flags)) {
+      if (ch == '\n') {
+        printf("$");
+      }
+    }
+    if (ch == '\n') {
+      printf("\n");
+    }
   }
 }
 
@@ -124,11 +124,11 @@ void simple_cat(uint16_t flags) {
 _Bool exec_squeeze_blank(char ch, FILE* fp) {
   static _Bool is_prevsymbol = 0;
   char next_char;
-  _Bool contin;
+  _Bool contin = 0;
 
   if ((next_char = fgetc(fp)) != EOF) {
     contin = (is_prevsymbol == 0 && ch == '\n' && next_char == '\n');
-    fseek(fp, -1, SEEK_CUR);
+    ungetc(next_char, fp);
   }
   is_prevsymbol = (ch != '\n');
   return contin;
@@ -139,7 +139,9 @@ _Bool exec_number_nonblank(_Bool reset_flag, char ch, FILE* fp) {
   _Bool contin = 0;
   char next_char;
 
-  if (reset_flag) line_count = 0;
+  if (reset_flag) {
+    line_count = 0;
+  }
   if (line_count == 0 && ch != '\n') {
     ++line_count;
     printf("%6d\t", line_count);
@@ -152,7 +154,7 @@ _Bool exec_number_nonblank(_Bool reset_flag, char ch, FILE* fp) {
         printf("\n%6d\t", line_count);
       }
 
-      fseek(fp, -1, SEEK_CUR);
+      ungetc(next_char, fp);
     }
   }
   return contin;
@@ -162,25 +164,28 @@ _Bool exec_number(_Bool reset_flag, char ch, FILE* fp) {
   static uint32_t line_count = 0;
   _Bool contin = 0;
 
-  if (reset_flag) line_count = 0;
+  if (reset_flag) {
+    line_count = 0;
+  }
   if (line_count == 0 && ch != '\n') {
     ++line_count;
     printf("%6d\t", line_count);
   }
+  int next_ch;
   if (ch == '\n') {
     ++line_count;
     if (line_count == 1) {
       printf("%6d\t\n", line_count);
       ++line_count;
-      if ((fgetc(fp)) != EOF) {
-        fseek(fp, -1, SEEK_CUR);
+      if ((next_ch = fgetc(fp)) != EOF) {
+        ungetc(next_ch, fp);
         printf("%6d\t", line_count);
       }
     } else {
-      if ((fgetc(fp)) == EOF) {
+      if ((next_ch = fgetc(fp)) == EOF) {
         printf("\n");
       } else {
-        fseek(fp, -1, SEEK_CUR);
+        ungetc(next_ch, fp);
         printf("\n%6d\t", line_count);
       }
     }

@@ -8,19 +8,15 @@
 
 #include "../common/error.h"
 
-#if defined(__APPLE__)
-#define SYNOPSIS \
-  "usage: s21_cat [-bevnst] [--number-nonblank] [--number] [file ...]"
-static char const short_options[] = "bevnst";
-#elif defined(__linux__)
+#if defined(__linux__)
 #include <unistd.h>
+#endif
 
 #define SYNOPSIS \
   "usage: s21_cat [-bEevnsTt] [--number-nonblank] [--number] \
 [--squeeze-blank] [file ...]"
-static char const short_options[] = "bEevnsTt";
-#endif
 
+static char const short_options[] = "bEevnsTt";
 enum { maxline = 4096 };
 
 enum flag {
