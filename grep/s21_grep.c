@@ -2,8 +2,18 @@
 #include <stdio.h>
 
 #include "../common/error.h"
-#include "./grep_utility.h"
-#include "./regex_list.h"
+#include "grep_utility.h"
+#include "regex_list.h"
+
+void process_file(char* path, struct grep_settings grep_sett) {
+  FILE* fp = NULL;
+  if (!file_readopen(&fp, path, grep_sett.options)) {
+    return;
+  }
+
+  regex_run(fp, path, grep_sett);
+  fclose(fp);
+}
 
 int main(int argc, char* argv[]) {
   struct grep_settings grep_sett = {0};
@@ -15,20 +25,14 @@ int main(int argc, char* argv[]) {
 
   if (has_pattern && !file_exists) {
     simple_grep(grep_sett);
+    exit(EXIT_SUCCESS);
   }
   if (!has_pattern && !file_exists) {
     err_quit(SYNOPSIS);
   }
 
   for (int i = optind; i < argc; ++i) {
-    char* path = argv[i];
-    FILE* fp = NULL;
-    if (!file_readopen(&fp, path, grep_sett.options)) {
-      continue;
-    }
-
-    regex_run(fp, path, grep_sett);
-    fclose(fp);
+    process_file(argv[i], grep_sett);
   }
 
   free_list(grep_sett.patterns);
