@@ -1,0 +1,8 @@
+Simple Bash Utils
+Copyright 2024
+
+This project was created as part of the School 21 curriculum.
+
+This project implements simplified versions of cat and grep utilities adhering to the POSIX.1-2017 standard.
+
+This product is licensed under the Apache License, Version 2.0.
