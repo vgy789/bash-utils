@@ -1,7 +1,8 @@
-CC=gcc
-CFLAGS=-Wall -Werror -Wextra -std=c11 -std=c17 -pedantic
-OUTPUT_FILE=s21_cat
-TEST_DIR=./test
+CC = gcc -std=c11
+CFLAGS = -Wall -Werror -Wextra -pedantic
+
+OUTPUT_FILE = s21_cat
+TEST_DIR = ./tests
 
 all: build
 
@@ -16,14 +17,14 @@ cat_utility.o:
 error.o:
 	$(CC) $(CFLAGS) -c ../common/error.c
 
-test: rebuild
-	cp $(OUTPUT_FILE) $(TEST_DIR)
-	bash $(TEST_DIR)/test_s21_cat.sh $(TEST_DIR)
-
-format:
-	clang-format --style=Google -i ./*.{c,h}
-
 clean:
 	rm -rf *.o $(OUTPUT_FILE) $(TEST_DIR)/$(OUTPUT_FILE)
 
 rebuild: clean all
+
+test: rebuild
+	cp $(OUTPUT_FILE) $(TEST_DIR)/
+	bash $(TEST_DIR)/test_s21_cat.sh $(TEST_DIR)
+
+format:
+	clang-format -style='{InsertBraces: true, InsertNewlineAtEOF: true, CommentPragmas: Insert, BasedOnStyle: Google}' *.c *.h -i
