@@ -15,8 +15,7 @@
 #include <string.h>
 
 #include "../common/error.h"
-#include "./regex_list.h"
-#include "grep_utility.h"
+#include "regex_list.h"
 
 #define SYNOPSIS \
   "usage: s21_grep [-cehilnosv] [-e pattern] [-f file] [pattern] [file ...]"
@@ -25,33 +24,32 @@ enum { maxline = 4096 };
 enum { NO_FILE, ONE_FILE, MULTIPLE_FILE };
 
 typedef struct {
-  bool pattern_e;       /* e */
-  bool match_icase;     /* i */
-  bool out_invert;      /* v */
-  bool count_matches;   /* c */
-  bool list_files;      /* l */
-  bool out_line;        /* n */
-  bool filename_option; /* h */
-  bool suppress_errors; /* s */
-  bool pattern_f;       /* f */
-  bool only_matching;   /* o */
-
-  int file_count;
+  unsigned int pattern_e : 1;       /* e */
+  unsigned int match_icase : 1;     /* i */
+  unsigned int out_invert : 1;      /* v */
+  unsigned int count_matches : 1;   /* c */
+  unsigned int list_files : 1;      /* l */
+  unsigned int out_line : 1;        /* n */
+  unsigned int filename_option : 1; /* h */
+  unsigned int suppress_errors : 1; /* s */
+  unsigned int pattern_f : 1;       /* f */
+  unsigned int only_matching : 1;   /* o */
+  unsigned int file_count : 2;      /* 0=NO_FILE, 1=ONE_FILE, 2=MULTIPLE_FILE */
 } arguments;
 
 static char const short_options[] = "ce:f:hilnosv";
 
 static struct option const long_options[] = {
-    {"regexp", required_argument, NULL, 'e'},        // pattern_e
-    {"file", required_argument, NULL, 'f'},          // pattern_f
-    {"ignore-case", no_argument, NULL, 'i'},         // match_icase
-    {"invert-match", no_argument, NULL, 'v'},        // out_invert
-    {"count", no_argument, NULL, 'c'},               // count_matches
-    {"files-with-matches", no_argument, NULL, 'l'},  // list_files
-    {"line-number", no_argument, NULL, 'n'},         // out_line
-    {"no-filename", no_argument, NULL, 'h'},         // filename_option
-    {"no-messages", no_argument, NULL, 's'},         // suppress_errors
-    {"only-matching", no_argument, NULL, 'o'},       // only_matching
+    {"regexp", required_argument, NULL, 'e'},       /* pattern_e */
+    {"file", required_argument, NULL, 'f'},         /* pattern_f */
+    {"ignore-case", no_argument, NULL, 'i'},        /* match_icase */
+    {"invert-match", no_argument, NULL, 'v'},       /* out_invert */
+    {"count", no_argument, NULL, 'c'},              /* count_matches */
+    {"files-with-matches", no_argument, NULL, 'l'}, /* list_files */
+    {"line-number", no_argument, NULL, 'n'},        /* out_line */
+    {"no-filename", no_argument, NULL, 'h'},        /* filename_option */
+    {"no-messages", no_argument, NULL, 's'},        /* suppress_errors */
+    {"only-matching", no_argument, NULL, 'o'},      /* only_matching */
     {NULL, 0, NULL, 0}};
 
 struct grep_settings {
