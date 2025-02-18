@@ -1,10 +1,10 @@
-#include "./grep_utility.h"
+#include "grep_utility.h"
 
 struct grep_settings parse_grep_options(int argc, char* argv[]) {
   struct grep_settings grep = {0};
   arguments args = {0};
   int opt = 0;
-  char* pattern = {'\0'};
+  char* pattern;
   regex_t regex;
 
   grep.patterns = init_list();
@@ -130,7 +130,9 @@ void regex_row_search(const char* row, struct grep_settings grep_sett,
     *row_number += 1;
     reti = regexec(&list->regex[i], row, 0, NULL, 0);
 
-    if (args.out_invert != (reti ^ 0)) continue;
+    if (args.out_invert != (reti ^ 0)) {
+      continue;
+    }
     *count_match += 1;
     if (args.count_matches || grep_sett.options.list_files) {
       continue;
@@ -160,11 +162,14 @@ void regex_row_search_with_o(const char* row, struct grep_settings grep_sett,
 
     while (true) {
       reti = regexec(&list->regex[i], row, 1, pmatch, 0);
-      if (args.out_invert != (reti ^ 0)) break;
+      if (args.out_invert != (reti ^ 0)) {
+        break;
+      }
 
       len = pmatch[0].rm_eo - pmatch[0].rm_so;
-      if (!(args.count_matches || grep_sett.options.list_files))
+      if (!(args.count_matches || grep_sett.options.list_files)) {
         printf("%.*s\n", (int)len, row + pmatch[0].rm_so);
+      }
 
       row += pmatch[0].rm_eo;
 
@@ -193,7 +198,9 @@ void regex_run(FILE* fp, char* filepath, struct grep_settings sett) {
   size_t row_number = 0;
 
   while ((n = getline(&row, &len, fp)) != EOF) {
-    if (row[n - 1] == '\n') row[n - 1] = '\0';
+    if (row[n - 1] == '\n') {
+      row[n - 1] = '\0';
+    }
 
     const bool o_flag =
         (sett.options.only_matching && !sett.options.out_invert);
@@ -204,11 +211,8 @@ void regex_run(FILE* fp, char* filepath, struct grep_settings sett) {
     }
   }
 
-  if (sett.options.list_files) {
-    printf("%s", filepath);
-    if (!sett.options.count_matches) {
-      putchar('\n');
-    }
+  if (sett.options.list_files && count_match > 0) {
+    printf("%s\n", filepath);
   }
 
   if (sett.options.count_matches) {
@@ -223,7 +227,9 @@ void regex_run(FILE* fp, char* filepath, struct grep_settings sett) {
     }
     printf("%ld\n", count_match);
   }
-  if (row) free(row);
+  if (row) {
+    free(row);
+  }
 }
 
 void simple_grep(struct grep_settings grep_sett) {
